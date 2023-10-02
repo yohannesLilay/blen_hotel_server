@@ -80,7 +80,7 @@ export const seedPermissions = [
     name: 'Can delete inventory',
   },
   {
-    code_name: 'add_client',
+    code_name: 'add_supplier',
     name: 'Can add supplier',
   },
   {
@@ -94,5 +94,21 @@ export const seedPermissions = [
   {
     code_name: 'delete_supplier',
     name: 'Can delete supplier',
+  },
+  {
+    code_name: 'add_company',
+    name: 'Can add company',
+  },
+  {
+    code_name: 'change_company',
+    name: 'Can change company',
+  },
+  {
+    code_name: 'view_company',
+    name: 'Can view company',
+  },
+  {
+    code_name: 'delete_company',
+    name: 'Can delete company',
   },
 ];
