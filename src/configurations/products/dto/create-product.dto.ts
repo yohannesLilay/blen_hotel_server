@@ -11,7 +11,7 @@ import {
 import { UniqueNameValidator } from '../validators/unique-name.validator';
 import { ValidCategoryValidator } from '../validators/valid-category.validator';
 
-export class CreateInventoryDto {
+export class CreateProductDto {
   @IsNotEmpty()
   @IsString()
   @MinLength(2, { message: 'Name must have at least 2 characters.' })

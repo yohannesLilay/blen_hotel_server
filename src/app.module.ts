@@ -17,6 +17,7 @@ import { SeedService } from './config/seed.service';
 /** Modules */
 import { SecurityModule } from './security/security.module';
 import { ConfigurationsModule } from './configurations/configurations.module';
+import { PurchasesModule } from './purchases/purchases.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { ConfigurationsModule } from './configurations/configurations.module';
     }),
     SecurityModule,
     ConfigurationsModule,
+    PurchasesModule,
   ],
   controllers: [],
   providers: [StartupService, SeedService],
