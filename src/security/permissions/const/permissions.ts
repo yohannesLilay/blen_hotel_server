@@ -64,20 +64,20 @@ export const seedPermissions = [
     name: 'Can delete category',
   },
   {
-    code_name: 'add_inventory',
-    name: 'Can add inventory',
+    code_name: 'add_product',
+    name: 'Can add product',
   },
   {
-    code_name: 'change_inventory',
-    name: 'Can change inventory',
+    code_name: 'change_product',
+    name: 'Can change product',
   },
   {
-    code_name: 'view_inventory',
-    name: 'Can view inventory',
+    code_name: 'view_product',
+    name: 'Can view product',
   },
   {
-    code_name: 'delete_inventory',
-    name: 'Can delete inventory',
+    code_name: 'delete_product',
+    name: 'Can delete product',
   },
   {
     code_name: 'add_supplier',
@@ -110,5 +110,21 @@ export const seedPermissions = [
   {
     code_name: 'delete_company',
     name: 'Can delete company',
+  },
+  {
+    code_name: 'add_purchase_order',
+    name: 'Can add purchase order',
+  },
+  {
+    code_name: 'change_purchase_order',
+    name: 'Can change purchase order',
+  },
+  {
+    code_name: 'view_purchase_order',
+    name: 'Can view purchase order',
+  },
+  {
+    code_name: 'delete_purchase_order',
+    name: 'Can delete purchase order',
   },
 ];

@@ -6,23 +6,23 @@ import {
 } from 'class-validator';
 
 /** Services */
-import { InventoriesService } from '../inventories.service';
+import { ProductsService } from '../products.service';
 
 @Injectable()
 @ValidatorConstraint({ name: 'uniqueName', async: true })
 export class UniqueNameValidator implements ValidatorConstraintInterface {
-  constructor(private readonly inventoriesService: InventoriesService) {}
+  constructor(private readonly productsService: ProductsService) {}
 
   async validate(name: string, args: ValidationArguments): Promise<boolean> {
     const id = (args.object as any).id;
 
-    const inventory = await this.inventoriesService.findByName(name);
-    if (!inventory) return true;
+    const product = await this.productsService.findByName(name);
+    if (!product) return true;
 
-    return inventory.id === id;
+    return product.id === id;
   }
 
   defaultMessage() {
-    return 'Inventory Name already exists.';
+    return 'Product Name already exists.';
   }
 }
