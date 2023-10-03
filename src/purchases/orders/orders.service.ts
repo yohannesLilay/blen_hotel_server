@@ -100,6 +100,12 @@ export class OrdersService {
     });
   }
 
+  async findByOrderNumber(orderNumber: string): Promise<Order> {
+    return await this.orderRepository.findOne({
+      where: { order_number: orderNumber },
+    });
+  }
+
   async findOneItem(id: number): Promise<OrderItem> {
     return await this.orderItemRepository.findOne({
       where: { id },
