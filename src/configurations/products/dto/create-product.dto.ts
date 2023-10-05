@@ -1,4 +1,5 @@
 import {
+  IsEnum,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -10,6 +11,7 @@ import {
 } from 'class-validator';
 import { UniqueNameValidator } from '../validators/unique-name.validator';
 import { ValidCategoryValidator } from '../validators/valid-category.validator';
+import { UnitOfMeasure } from '../constants/unit-of-measure.enum';
 
 export class CreateProductDto {
   @IsNotEmpty()
@@ -20,13 +22,22 @@ export class CreateProductDto {
   name: string;
 
   @IsNotEmpty()
+  @IsEnum(UnitOfMeasure)
+  unit_of_measure: UnitOfMeasure;
+
+  @IsNotEmpty()
   @IsNumber()
   @Min(1)
   @Validate(ValidCategoryValidator)
   categoryId: number;
 
   @IsOptional()
+  @IsNumber()
+  @Min(1)
+  safety_stock_level?: number;
+
+  @IsOptional()
   @IsString()
-  @MaxLength(200, { message: 'Description must have at most 200 characters.' })
-  description?: string;
+  @MaxLength(200, { message: 'Notes must have at most 200 characters.' })
+  notes?: string;
 }

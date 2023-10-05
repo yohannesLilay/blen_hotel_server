@@ -7,6 +7,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { UnitOfMeasure } from '../constants/unit-of-measure.enum';
 
 @Entity()
 export class Product {
@@ -16,8 +17,14 @@ export class Product {
   @Column({ type: 'varchar', length: 100, unique: true })
   name: string;
 
+  @Column({ type: 'enum', enum: UnitOfMeasure, default: UnitOfMeasure.PIECE })
+  unit_of_measure: UnitOfMeasure;
+
   @Column({ type: 'varchar', length: 200, nullable: true })
-  description: string;
+  notes: string;
+
+  @Column({ type: 'int', nullable: true })
+  safety_stock_level: number;
 
   @ManyToOne(() => Category)
   category: Category;
