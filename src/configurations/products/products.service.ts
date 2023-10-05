@@ -11,6 +11,7 @@ import { CategoriesService } from '../categories/categories.service';
 
 /** Entities */
 import { Product } from './entities/product.entity';
+import { UnitOfMeasure } from './constants/unit-of-measure.enum';
 
 @Injectable()
 export class ProductsService {
@@ -23,7 +24,9 @@ export class ProductsService {
   async create(createProductDto: CreateProductDto): Promise<Product> {
     const product = this.productRepository.create({
       name: createProductDto.name,
-      description: createProductDto.description,
+      unit_of_measure: createProductDto.unit_of_measure,
+      safety_stock_level: createProductDto.safety_stock_level,
+      notes: createProductDto.notes,
     });
 
     product.category = await this.categoriesService.findOne(
@@ -39,7 +42,7 @@ export class ProductsService {
 
   async template() {
     const categories = await this.categoriesService.findAll();
-    return { categoryOptions: categories };
+    return { categoryOptions: categories, uomOptions: UnitOfMeasure };
   }
 
   async findOne(id: number): Promise<Product> {
@@ -61,7 +64,9 @@ export class ProductsService {
     if (!product) throw new NotFoundException('Product not found.');
 
     product.name = updateProductDto.name;
-    product.description = updateProductDto.description;
+    product.unit_of_measure = updateProductDto.unit_of_measure;
+    product.safety_stock_level = updateProductDto.safety_stock_level;
+    product.notes = updateProductDto.notes;
     product.category = await this.categoriesService.findOne(
       updateProductDto.categoryId,
     );

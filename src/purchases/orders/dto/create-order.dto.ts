@@ -1,4 +1,5 @@
 import {
+  ArrayMinSize,
   IsArray,
   IsDateString,
   IsInt,
@@ -46,5 +47,6 @@ export class CreateOrderDto {
   @IsNotEmpty()
   @ValidateNested({ each: true })
   @Type(() => OrderItemDto)
+  @ArrayMinSize(1, { message: 'At least one item is required' })
   items: OrderItemDto[];
 }

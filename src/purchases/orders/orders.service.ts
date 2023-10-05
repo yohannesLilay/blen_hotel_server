@@ -1,10 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 
 /** DTOs */
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import { CreateOrderItemDto } from './dto/create-order-item.dto';
 import { UpdateOrderItemDto } from './dto/update-order-item.dto';
 
 /** Entities */
@@ -25,13 +26,13 @@ export class OrdersService {
     private readonly orderRepository: Repository<Order>,
     @InjectRepository(OrderItem)
     private readonly orderItemRepository: Repository<OrderItem>,
-    private readonly entityManager: EntityManager,
     private readonly productsService: ProductsService,
     private readonly usersService: UsersService,
+    private dataSource: DataSource,
   ) {}
 
   async create(createOrderDto: CreateOrderDto, userId: number): Promise<Order> {
-    const queryRunner = this.entityManager.queryRunner;
+    const queryRunner = this.dataSource.createQueryRunner();
 
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -68,6 +69,27 @@ export class OrdersService {
     } finally {
       await queryRunner.release();
     }
+  }
+
+  async createOrderItem(
+    id: number,
+    createOrderItemDto: CreateOrderItemDto,
+  ): Promise<OrderItem> {
+    const order = await this.findOne(id);
+    if (!order) throw new NotFoundException('Order not found.');
+
+    const orderItem = this.orderItemRepository.create({
+      order,
+      unit_price: createOrderItemDto.unit_price,
+      quantity: createOrderItemDto.quantity,
+      total_price: createOrderItemDto.unit_price * createOrderItemDto.quantity,
+      remark: createOrderItemDto.remark,
+    });
+    orderItem.product = await this.productsService.findOne(
+      createOrderItemDto.product_id,
+    );
+
+    return await this.orderItemRepository.save(orderItem);
   }
 
   async findAll(): Promise<Order[]> {
@@ -115,9 +137,16 @@ export class OrdersService {
   async updateOrder(
     id: number,
     updateOrderDto: UpdateOrderDto,
+    userId: number,
   ): Promise<Order> {
     const order = await this.findOne(id);
     if (!order) throw new NotFoundException('Order not found.');
+
+    if (order.status != OrderStatus.REQUESTED)
+      throw new NotFoundException('Order status does not allow updates.');
+
+    if (order.requested_by?.id != userId)
+      throw new NotFoundException('Not allowed to update this purchase order.');
 
     order.order_number = updateOrderDto.order_number;
     order.order_date = updateOrderDto.order_date;
@@ -127,9 +156,20 @@ export class OrdersService {
 
   async updateOrderItem(
     id: number,
+    itemId: number,
     updateOrderItemDto: UpdateOrderItemDto,
+    userId: number,
   ): Promise<OrderItem> {
-    const orderItem = await this.findOneItem(id);
+    const order = await this.findOne(id);
+    if (!order) throw new NotFoundException('Order not found.');
+
+    if (order.status != OrderStatus.REQUESTED)
+      throw new NotFoundException('Order status does not allow updates.');
+
+    if (order.requested_by?.id != userId)
+      throw new NotFoundException('Not allowed to update this purchase order.');
+
+    const orderItem = await this.findOneItem(itemId);
     if (!orderItem) throw new NotFoundException('Order Item not found.');
 
     orderItem.unit_price = updateOrderItemDto.unit_price;
@@ -148,20 +188,34 @@ export class OrdersService {
     const order = await this.findOne(id);
     if (!order) throw new NotFoundException('Order not found.');
 
+    if (order.status === action)
+      throw new NotFoundException('Operation not allowed.');
+
+    switch (action) {
+      case OrderStatus.CHECKED:
+        order.checked_by = await this.usersService.findOne(userId);
+        break;
+      case OrderStatus.APPROVED:
+        order.approved_by = await this.usersService.findOne(userId);
+      default:
+        break;
+    }
     order.status = action;
-    if (action == OrderStatus.CHECKED)
-      order.checked_by = await this.usersService.findOne(userId);
-    if (action == OrderStatus.APPROVED)
-      order.approved_by = await this.usersService.findOne(userId);
 
     return await this.orderRepository.save(order);
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(id: number, userId): Promise<void> {
     const order = await this.findOne(id);
     if (!order) throw new NotFoundException('Order not found.');
 
-    const queryRunner = this.entityManager.queryRunner;
+    if (order.status != OrderStatus.REQUESTED)
+      throw new NotFoundException('This order can not be deleted.');
+
+    if (order.requested_by?.id != userId)
+      throw new NotFoundException('Not allowed to delete this purchase order.');
+
+    const queryRunner = this.dataSource.createQueryRunner();
 
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -176,8 +230,21 @@ export class OrdersService {
     }
   }
 
-  async removeOrderItem(id: number): Promise<void> {
-    const orderItem = await this.findOneItem(id);
+  async removeOrderItem(
+    id: number,
+    itemId: number,
+    userId: number,
+  ): Promise<void> {
+    const order = await this.findOne(id);
+    if (!order) throw new NotFoundException('Order not found.');
+
+    if (order.status != OrderStatus.REQUESTED)
+      throw new NotFoundException('This orders item can not be deleted.');
+
+    if (order.requested_by?.id != userId)
+      throw new NotFoundException('Not allowed to delete this purchase order.');
+
+    const orderItem = await this.findOneItem(itemId);
     if (!orderItem) throw new NotFoundException('Order Item not found.');
 
     await this.orderItemRepository.remove(orderItem);
