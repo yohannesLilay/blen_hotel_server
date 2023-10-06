@@ -5,7 +5,7 @@ import {
 import { Injectable } from '@nestjs/common';
 
 /** Services */
-import { ProductsService } from 'src/configurations/products/products.service';
+import { ProductsService } from 'src/product-management/products/products.service';
 
 @ValidatorConstraint({ name: 'validProduct', async: true })
 @Injectable()

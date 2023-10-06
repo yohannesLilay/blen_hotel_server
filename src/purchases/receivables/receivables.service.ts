@@ -14,7 +14,7 @@ import { ReceivableItem } from './entities/receivable-item.entity';
 
 /** Services */
 import { OrdersService } from '../orders/orders.service';
-import { ProductsService } from 'src/configurations/products/products.service';
+import { ProductsService } from 'src/product-management/products/products.service';
 import { UsersService } from 'src/security/users/users.service';
 import { SuppliersService } from 'src/configurations/suppliers/suppliers.service';
 

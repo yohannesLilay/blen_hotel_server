@@ -13,7 +13,7 @@ import { OrderItem } from './entities/order-item.entity';
 
 /** Modules */
 import { UsersModule } from 'src/security/users/users.module';
-import { ProductsModule } from 'src/configurations/products/products.module';
+import { ProductsModule } from 'src/product-management/products/products.module';
 
 /** Custom Validators */
 import { UniqueOrderNumberValidator } from './validators/unique-order-number.validator';

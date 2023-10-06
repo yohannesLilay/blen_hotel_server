@@ -1,4 +1,3 @@
-import { Category } from 'src/configurations/categories/entities/category.entity';
 import {
   Column,
   CreateDateColumn,
@@ -8,6 +7,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { UnitOfMeasure } from '../constants/unit-of-measure.enum';
+import { Category } from 'src/product-management/categories/entities/category.entity';
 
 @Entity()
 export class Product {

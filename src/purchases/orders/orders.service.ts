@@ -13,7 +13,7 @@ import { Order } from './entities/order.entity';
 import { OrderItem } from './entities/order-item.entity';
 
 /** Services */
-import { ProductsService } from 'src/configurations/products/products.service';
+import { ProductsService } from 'src/product-management/products/products.service';
 import { UsersService } from 'src/security/users/users.service';
 
 /** Constants */

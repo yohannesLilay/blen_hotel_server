@@ -15,7 +15,7 @@ import { ReceivableItem } from './entities/receivable-item.entity';
 import { UsersModule } from 'src/security/users/users.module';
 import { SuppliersModule } from 'src/configurations/suppliers/suppliers.module';
 import { OrdersModule } from '../orders/orders.module';
-import { ProductsModule } from 'src/configurations/products/products.module';
+import { ProductsModule } from 'src/product-management/products/products.module';
 
 /** Custom Validator */
 import { UniqueReceivableNumberValidator } from './validators/unique-receivable-number.validator';
