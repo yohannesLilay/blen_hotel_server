@@ -128,6 +128,12 @@ export class OrdersService {
     });
   }
 
+  async findApprovedOrders(): Promise<Order[]> {
+    return await this.orderRepository.find({
+      where: { status: OrderStatus.APPROVED },
+    });
+  }
+
   async findOneItem(id: number): Promise<OrderItem> {
     return await this.orderItemRepository.findOne({
       where: { id },
