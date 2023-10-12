@@ -7,11 +7,9 @@ import {
   Param,
   Delete,
   UseGuards,
-  Req,
   BadRequestException,
   Query,
 } from '@nestjs/common';
-import { Request } from 'express';
 
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -23,6 +21,7 @@ import { CreateOrderItemDto } from './dto/create-order-item.dto';
 import { AccessTokenGuard } from 'src/security/auth/guards/access-token.guard';
 import { PermissionsGuard } from 'src/security/auth/guards/permissions.guard';
 import { Permissions } from 'src/security/auth/decorators/permissions.decorator';
+import { User } from 'src/security/auth/decorators/user.decorator';
 
 /** Constants */
 import { OrderStatus } from './constants/OrderStatus.enum';
@@ -34,8 +33,11 @@ export class OrdersController {
 
   @Post()
   @Permissions('add_purchase_order')
-  async create(@Body() createOrderDto: CreateOrderDto, @Req() req: Request) {
-    return await this.ordersService.create(createOrderDto, req.user['sub']);
+  async create(
+    @Body() createOrderDto: CreateOrderDto,
+    @User('id') userId: number,
+  ) {
+    return await this.ordersService.create(createOrderDto, userId);
   }
 
   @Post(':id')
@@ -70,16 +72,12 @@ export class OrdersController {
   async update(
     @Param('id') id: number,
     @Body() updateOrderDto: UpdateOrderDto,
-    @Req() req: Request,
+    @User('id') userId: number,
   ) {
     if (id != updateOrderDto.id)
       throw new BadRequestException('ID mismatch between URL and request body');
 
-    return await this.ordersService.updateOrder(
-      +id,
-      updateOrderDto,
-      req.user['sub'],
-    );
+    return await this.ordersService.updateOrder(+id, updateOrderDto, userId);
   }
 
   @Patch(':id/items/:item_id')
@@ -88,13 +86,13 @@ export class OrdersController {
     @Param('id') id: number,
     @Param('item_id') item_id: number,
     @Body() updateOrderItemDto: UpdateOrderItemDto,
-    @Req() req: Request,
+    @User('id') userId: number,
   ) {
     return await this.ordersService.updateOrderItem(
       +id,
       +item_id,
       updateOrderItemDto,
-      req.user['sub'],
+      userId,
     );
   }
 
@@ -103,19 +101,15 @@ export class OrdersController {
   async updateOrderStatus(
     @Param('id') id: number,
     @Query('command') command: OrderStatus,
-    @Req() req: Request,
+    @User('id') userId: number,
   ) {
-    return await this.ordersService.updateOrderStatus(
-      +id,
-      command,
-      req.user['sub'],
-    );
+    return await this.ordersService.updateOrderStatus(+id, command, userId);
   }
 
   @Delete(':id')
   @Permissions('delete_purchase_order')
-  async remove(@Param('id') id: number, @Req() req: Request) {
-    return await this.ordersService.remove(+id, req.user['sub']);
+  async remove(@Param('id') id: number, @User('id') userId: number) {
+    return await this.ordersService.remove(+id, userId);
   }
 
   @Delete(':id/items/:item_id')
@@ -123,12 +117,8 @@ export class OrdersController {
   async removeOrderItem(
     @Param('id') id: number,
     @Param('item_id') item_id: number,
-    @Req() req: Request,
+    @User('id') userId: number,
   ) {
-    return await this.ordersService.removeOrderItem(
-      +id,
-      +item_id,
-      req.user['sub'],
-    );
+    return await this.ordersService.removeOrderItem(+id, +item_id, userId);
   }
 }

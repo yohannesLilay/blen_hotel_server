@@ -7,10 +7,8 @@ import {
   Param,
   Delete,
   UseGuards,
-  Req,
   BadRequestException,
 } from '@nestjs/common';
-import { Request } from 'express';
 
 import { ReceivablesService } from './receivables.service';
 import { CreateReceivableDto } from './dto/create-receivable.dto';
@@ -22,6 +20,7 @@ import { CreateReceivableItemDto } from './dto/create-receivable-item.dto';
 import { AccessTokenGuard } from 'src/security/auth/guards/access-token.guard';
 import { PermissionsGuard } from 'src/security/auth/guards/permissions.guard';
 import { Permissions } from 'src/security/auth/decorators/permissions.decorator';
+import { User } from 'src/security/auth/decorators/user.decorator';
 
 @UseGuards(AccessTokenGuard, PermissionsGuard)
 @Controller('purchase-receivables')
@@ -32,12 +31,9 @@ export class ReceivablesController {
   @Permissions('add_purchase_receivable')
   async create(
     @Body() createReceivableDto: CreateReceivableDto,
-    @Req() req: Request,
+    @User('id') userId: number,
   ) {
-    return await this.receivablesService.create(
-      createReceivableDto,
-      req.user['sub'],
-    );
+    return await this.receivablesService.create(createReceivableDto, userId);
   }
 
   @Post(':id')
@@ -75,7 +71,7 @@ export class ReceivablesController {
   async update(
     @Param('id') id: number,
     @Body() updateReceivableDto: UpdateReceivableDto,
-    @Req() req: Request,
+    @User('id') userId: number,
   ) {
     if (id != updateReceivableDto.id)
       throw new BadRequestException('ID mismatch between URL and request body');
@@ -83,7 +79,7 @@ export class ReceivablesController {
     return await this.receivablesService.updateReceivable(
       +id,
       updateReceivableDto,
-      req.user['sub'],
+      userId,
     );
   }
 
@@ -93,29 +89,29 @@ export class ReceivablesController {
     @Param('id') id: number,
     @Param('item_id') item_id: number,
     @Body() updateReceivableItemDto: UpdateReceivableItemDto,
-    @Req() req: Request,
+    @User('id') userId: number,
   ) {
     return await this.receivablesService.updateReceivableItem(
       +id,
       +item_id,
       updateReceivableItemDto,
-      req.user['sub'],
+      userId,
     );
   }
 
   @Patch(':id/change-status')
   @Permissions('change_purchase_receivable')
-  async updateReceivableStatus(@Param('id') id: number, @Req() req: Request) {
-    return await this.receivablesService.updateReceivableStatus(
-      +id,
-      req.user['sub'],
-    );
+  async updateReceivableStatus(
+    @Param('id') id: number,
+    @User('id') userId: number,
+  ) {
+    return await this.receivablesService.updateReceivableStatus(+id, userId);
   }
 
   @Delete(':id')
   @Permissions('delete_purchase_receivable')
-  async remove(@Param('id') id: number, @Req() req: Request) {
-    return await this.receivablesService.remove(+id, req.user['sub']);
+  async remove(@Param('id') id: number, @User('id') userId: number) {
+    return await this.receivablesService.remove(+id, userId);
   }
 
   @Delete(':id/items/:item_id')
@@ -123,12 +119,12 @@ export class ReceivablesController {
   async removeReceivableItem(
     @Param('id') id: number,
     @Param('item_id') item_id: number,
-    @Req() req: Request,
+    @User('id') userId: number,
   ) {
     return await this.receivablesService.removeReceivableItem(
       +id,
       +item_id,
-      req.user['sub'],
+      userId,
     );
   }
 }

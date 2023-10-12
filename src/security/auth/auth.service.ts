@@ -111,7 +111,7 @@ export class AuthService {
   }
 
   async generateAccessToken(user: User) {
-    const payload = { sub: user.id, email: user.email };
+    const payload = { id: user.id, email: user.email };
     return await this.jwtService.signAsync(payload, {
       secret: process.env.ACCESS_TOKEN_SECRET,
       expiresIn: process.env.ACCESS_TOKEN_EXPIRATION,
@@ -119,7 +119,7 @@ export class AuthService {
   }
 
   async generateRefreshToken(user: User) {
-    const payload = { sub: user.id, email: user.email };
+    const payload = { id: user.id, email: user.email };
     return await this.jwtService.signAsync(payload, {
       secret: process.env.REFRESH_TOKEN_SECRET,
       expiresIn: process.env.REFRESH_TOKEN_EXPIRATION,
