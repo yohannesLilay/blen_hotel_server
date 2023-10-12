@@ -12,11 +12,8 @@ import { AccessTokenStrategy } from './strategies/accessToken.strategy';
 import { RefreshTokenStrategy } from './strategies/refreshToken.strategy';
 import { PermissionsGuard } from './guards/permissions.guard';
 
-/** Modules */
-import { UsersModule } from '../users/users.module';
-
 @Module({
-  imports: [JwtModule.register({}), UsersModule],
+  imports: [JwtModule.register({})],
   controllers: [AuthController],
   providers: [
     AuthService,

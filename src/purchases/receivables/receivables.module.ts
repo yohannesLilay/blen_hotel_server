@@ -12,7 +12,6 @@ import { Receivable } from './entities/receivable.entity';
 import { ReceivableItem } from './entities/receivable-item.entity';
 
 /** Modules */
-import { UsersModule } from 'src/security/users/users.module';
 import { SuppliersModule } from 'src/configurations/suppliers/suppliers.module';
 import { OrdersModule } from '../orders/orders.module';
 import { ProductsModule } from 'src/product-management/products/products.module';
@@ -26,7 +25,6 @@ import { ValidSupplierValidator } from './validators/valid-supplier.validator';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Receivable, ReceivableItem]),
-    UsersModule,
     SuppliersModule,
     OrdersModule,
     ProductsModule,
