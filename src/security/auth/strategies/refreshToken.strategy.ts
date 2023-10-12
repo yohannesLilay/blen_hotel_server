@@ -4,7 +4,7 @@ import { Request } from 'express';
 import { Injectable } from '@nestjs/common';
 
 type JwtPayload = {
-  sub: string;
+  id: number;
   email: string;
 };
 

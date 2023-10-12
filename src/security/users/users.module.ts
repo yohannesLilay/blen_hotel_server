@@ -18,6 +18,7 @@ import { ValidRolesValidator } from './validators/valid-roles.validator';
 /** Modules */
 import { RolesModule } from '../roles/roles.module';
 
+@Global()
 @Module({
   imports: [TypeOrmModule.forFeature([User]), RolesModule],
   controllers: [UsersController],
@@ -29,5 +30,4 @@ import { RolesModule } from '../roles/roles.module';
   ],
   exports: [UsersService],
 })
-@Global()
 export class UsersModule {}
