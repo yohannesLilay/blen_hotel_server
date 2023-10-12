@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
 import { OrdersModule } from './orders/orders.module';
+import { ReceivablesModule } from './receivables/receivables.module';
 
 @Module({
-  imports: [OrdersModule],
+  imports: [OrdersModule, ReceivablesModule],
   providers: [],
-  exports: [OrdersModule],
+  exports: [OrdersModule, ReceivablesModule],
 })
 export class PurchasesModule {}

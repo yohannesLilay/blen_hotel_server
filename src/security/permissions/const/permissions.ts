@@ -127,4 +127,20 @@ export const seedPermissions = [
     code_name: 'delete_purchase_order',
     name: 'Can delete purchase order',
   },
+  {
+    code_name: 'add_purchase_receivable',
+    name: 'Can add purchase receivable',
+  },
+  {
+    code_name: 'change_purchase_receivable',
+    name: 'Can change purchase receivable',
+  },
+  {
+    code_name: 'view_purchase_receivable',
+    name: 'Can view purchase receivable',
+  },
+  {
+    code_name: 'delete_purchase_receivable',
+    name: 'Can delete purchase receivable',
+  },
 ];

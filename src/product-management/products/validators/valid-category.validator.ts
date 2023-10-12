@@ -5,7 +5,7 @@ import {
 import { Injectable } from '@nestjs/common';
 
 /** Services */
-import { CategoriesService } from 'src/configurations/categories/categories.service';
+import { CategoriesService } from 'src/product-management/categories/categories.service';
 
 @ValidatorConstraint({ name: 'validCategory', async: true })
 @Injectable()

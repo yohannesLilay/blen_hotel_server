@@ -1,9 +1,9 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
-import { Order } from './order.entity';
+import { Receivable } from './receivable.entity';
 import { Product } from 'src/product-management/products/entities/product.entity';
 
 @Entity()
-export class OrderItem {
+export class ReceivableItem {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -19,8 +19,8 @@ export class OrderItem {
   @Column({ type: 'varchar', nullable: true })
   remark: string;
 
-  @ManyToOne(() => Order, (order) => order.items)
-  order: Order;
+  @ManyToOne(() => Receivable, (receivable) => receivable.items)
+  receivable: Receivable;
 
   @ManyToOne(() => Product)
   product: Product;

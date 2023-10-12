@@ -1,4 +1,3 @@
-import { Category } from 'src/configurations/categories/entities/category.entity';
 import {
   Column,
   CreateDateColumn,
@@ -8,6 +7,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { UnitOfMeasure } from '../constants/unit-of-measure.enum';
+import { Category } from 'src/product-management/categories/entities/category.entity';
 
 @Entity()
 export class Product {
@@ -28,6 +28,9 @@ export class Product {
 
   @ManyToOne(() => Category)
   category: Category;
+
+  @Column({ type: 'int', nullable: false })
+  stock_quantity: number;
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;

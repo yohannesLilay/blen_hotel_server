@@ -13,7 +13,7 @@ import { Order } from './entities/order.entity';
 import { OrderItem } from './entities/order-item.entity';
 
 /** Services */
-import { ProductsService } from 'src/configurations/products/products.service';
+import { ProductsService } from 'src/product-management/products/products.service';
 import { UsersService } from 'src/security/users/users.service';
 
 /** Constants */
@@ -105,7 +105,7 @@ export class OrdersService {
   }
 
   async template() {
-    const products = await this.productsService.findAll();
+    const products = await this.productsService.findAllList();
     return { productOptions: products };
   }
 
@@ -125,6 +125,12 @@ export class OrdersService {
   async findByOrderNumber(orderNumber: string): Promise<Order> {
     return await this.orderRepository.findOne({
       where: { order_number: orderNumber },
+    });
+  }
+
+  async findApprovedOrders(): Promise<Order[]> {
+    return await this.orderRepository.find({
+      where: { status: OrderStatus.APPROVED },
     });
   }
 

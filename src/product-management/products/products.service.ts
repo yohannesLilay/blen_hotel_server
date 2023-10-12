@@ -11,6 +11,8 @@ import { CategoriesService } from '../categories/categories.service';
 
 /** Entities */
 import { Product } from './entities/product.entity';
+
+/** Constants */
 import { UnitOfMeasure } from './constants/unit-of-measure.enum';
 
 @Injectable()
@@ -27,8 +29,8 @@ export class ProductsService {
       unit_of_measure: createProductDto.unit_of_measure,
       safety_stock_level: createProductDto.safety_stock_level,
       notes: createProductDto.notes,
+      stock_quantity: 0,
     });
-
     product.category = await this.categoriesService.findOne(
       createProductDto.categoryId,
     );
@@ -36,8 +38,45 @@ export class ProductsService {
     return await this.productRepository.save(product);
   }
 
-  async findAll(): Promise<Product[]> {
-    return await this.productRepository.find({ relations: ['category'] });
+  async findAll(
+    page: number,
+    limit: number,
+    search?: string,
+  ): Promise<{
+    products: Product[];
+    total: number;
+    currentPage: number;
+    totalPages: number;
+  }> {
+    const skip = (page - 1) * limit;
+
+    const queryBuilder = this.productRepository
+      .createQueryBuilder('product')
+      .leftJoinAndSelect('product.category', 'category')
+      .orderBy('product.id', 'DESC');
+
+    if (search) {
+      queryBuilder.where(
+        '(LOWER(product.name) LIKE :search OR LOWER(category.name) LIKE :search)',
+        {
+          search: `%${search.toLowerCase()}%`,
+        },
+      );
+    }
+
+    const [products, total] = await queryBuilder
+      .skip(skip)
+      .take(limit)
+      .getManyAndCount();
+
+    const currentPage = page;
+    const totalPages = Math.ceil(total / limit);
+
+    return { products, total, currentPage, totalPages };
+  }
+
+  async findAllList(): Promise<Product[]> {
+    return await this.productRepository.find();
   }
 
   async template() {
