@@ -105,7 +105,7 @@ export class OrdersService {
   }
 
   async template() {
-    const products = await this.productsService.findAll();
+    const products = await this.productsService.findAllList();
     return { productOptions: products };
   }
 

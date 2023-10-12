@@ -124,7 +124,7 @@ export class ReceivablesService {
   }
 
   async template() {
-    const products = await this.productsService.findAll();
+    const products = await this.productsService.findAllList();
     const orders = await this.ordersService.findApprovedOrders();
     const suppliers = await this.suppliersService.findAll();
     return {

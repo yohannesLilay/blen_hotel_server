@@ -3,8 +3,8 @@ import { CategoriesModule } from './categories/categories.module';
 import { ProductsModule } from './products/products.module';
 
 @Module({
-  exports: [CategoriesModule, ProductsModule],
-  providers: [],
   imports: [CategoriesModule, ProductsModule],
+  providers: [],
+  exports: [CategoriesModule, ProductsModule],
 })
 export class ProductManagementModule {}

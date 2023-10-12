@@ -29,6 +29,9 @@ export class Product {
   @ManyToOne(() => Category)
   category: Category;
 
+  @Column({ type: 'int', nullable: false })
+  stock_quantity: number;
+
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
 

@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   BadRequestException,
+  Query,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -31,8 +32,12 @@ export class ProductsController {
 
   @Get()
   @Permissions('view_product')
-  async findAll() {
-    return await this.productsService.findAll();
+  async findAll(
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+    @Query('search') search: string | undefined,
+  ) {
+    return await this.productsService.findAll(Math.max(page, 1), limit, search);
   }
 
   @Get('template')
