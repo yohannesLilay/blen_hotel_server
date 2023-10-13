@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   BadRequestException,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
@@ -37,14 +38,14 @@ export class CategoriesController {
 
   @Get(':id')
   @Permissions('view_category')
-  async findOne(@Param('id') id: number) {
+  async findOne(@Param('id', ParseIntPipe) id: number) {
     return await this.categoriesService.findOne(+id);
   }
 
   @Patch(':id')
   @Permissions('change_category')
   async update(
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateCategoryDto: UpdateCategoryDto,
   ) {
     if (id != updateCategoryDto.id)
@@ -55,7 +56,7 @@ export class CategoriesController {
 
   @Delete(':id')
   @Permissions('delete_category')
-  async remove(@Param('id') id: number) {
+  async remove(@Param('id', ParseIntPipe) id: number) {
     return await this.categoriesService.remove(+id);
   }
 }

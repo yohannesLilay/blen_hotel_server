@@ -8,6 +8,7 @@ import {
   Delete,
   BadRequestException,
   UseGuards,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -43,13 +44,16 @@ export class UsersController {
 
   @Get(':id')
   @Permissions('view_user')
-  async findOne(@Param('id') id: number) {
+  async findOne(@Param('id', ParseIntPipe) id: number) {
     return await this.usersService.findOne(+id);
   }
 
   @Patch(':id')
   @Permissions('change_user')
-  async update(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto) {
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
     if (id != updateUserDto.id)
       throw new BadRequestException('ID mismatch between URL and request body');
 
@@ -58,13 +62,13 @@ export class UsersController {
 
   @Patch(':id/toggle-status')
   @Permissions('change_user')
-  async toggleStatus(@Param('id') id: number) {
+  async toggleStatus(@Param('id', ParseIntPipe) id: number) {
     return await this.usersService.toggleStatus(+id);
   }
 
   @Delete(':id')
   @Permissions('delete_user')
-  async remove(@Param('id') id: number) {
+  async remove(@Param('id', ParseIntPipe) id: number) {
     return await this.usersService.remove(+id);
   }
 }

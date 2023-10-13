@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   BadRequestException,
+  ParseIntPipe,
 } from '@nestjs/common';
 
 import { ReceivablesService } from './receivables.service';
@@ -39,7 +40,7 @@ export class ReceivablesController {
   @Post(':id')
   @Permissions('add_purchase_receivable')
   async createReceivableItem(
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() createReceivableItemDto: CreateReceivableItemDto,
   ) {
     return await this.receivablesService.createReceivableItem(
@@ -62,14 +63,14 @@ export class ReceivablesController {
 
   @Get(':id')
   @Permissions('view_purchase_receivable')
-  async findOne(@Param('id') id: number) {
+  async findOne(@Param('id', ParseIntPipe) id: number) {
     return await this.receivablesService.findOne(+id);
   }
 
   @Patch(':id')
   @Permissions('change_purchase_receivable')
   async update(
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateReceivableDto: UpdateReceivableDto,
     @User('id') userId: number,
   ) {
@@ -86,8 +87,8 @@ export class ReceivablesController {
   @Patch(':id/items/:item_id')
   @Permissions('change_purchase_receivable')
   async updateReceivableItem(
-    @Param('id') id: number,
-    @Param('item_id') item_id: number,
+    @Param('id', ParseIntPipe) id: number,
+    @Param('item_id', ParseIntPipe) item_id: number,
     @Body() updateReceivableItemDto: UpdateReceivableItemDto,
     @User('id') userId: number,
   ) {
@@ -102,7 +103,7 @@ export class ReceivablesController {
   @Patch(':id/change-status')
   @Permissions('change_purchase_receivable')
   async updateReceivableStatus(
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @User('id') userId: number,
   ) {
     return await this.receivablesService.updateReceivableStatus(+id, userId);
@@ -110,15 +111,18 @@ export class ReceivablesController {
 
   @Delete(':id')
   @Permissions('delete_purchase_receivable')
-  async remove(@Param('id') id: number, @User('id') userId: number) {
+  async remove(
+    @Param('id', ParseIntPipe) id: number,
+    @User('id') userId: number,
+  ) {
     return await this.receivablesService.remove(+id, userId);
   }
 
   @Delete(':id/items/:item_id')
   @Permissions('delete_purchase_receivable')
   async removeReceivableItem(
-    @Param('id') id: number,
-    @Param('item_id') item_id: number,
+    @Param('id', ParseIntPipe) id: number,
+    @Param('item_id', ParseIntPipe) item_id: number,
     @User('id') userId: number,
   ) {
     return await this.receivablesService.removeReceivableItem(

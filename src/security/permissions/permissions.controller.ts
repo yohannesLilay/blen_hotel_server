@@ -8,6 +8,7 @@ import {
   Delete,
   BadRequestException,
   UseGuards,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { PermissionsService } from './permissions.service';
 import { CreatePermissionDto } from './dto/create-permission.dto';
@@ -37,14 +38,14 @@ export class PermissionsController {
 
   @Get(':id')
   @Permissions('view_permission')
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id', ParseIntPipe) id: string) {
     return await this.permissionsService.findOne(+id);
   }
 
   @Patch(':id')
   @Permissions('change_permission')
   async update(
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updatePermissionDto: UpdatePermissionDto,
   ) {
     if (id != updatePermissionDto.id)
@@ -55,7 +56,7 @@ export class PermissionsController {
 
   @Delete(':id')
   @Permissions('delete_permission')
-  async remove(@Param('id') id: number) {
+  async remove(@Param('id', ParseIntPipe) id: number) {
     return await this.permissionsService.remove(+id);
   }
 }

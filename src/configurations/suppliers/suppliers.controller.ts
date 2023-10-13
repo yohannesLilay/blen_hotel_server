@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   BadRequestException,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { SuppliersService } from './suppliers.service';
 import { CreateSupplierDto } from './dto/create-supplier.dto';
@@ -37,14 +38,14 @@ export class SuppliersController {
 
   @Get(':id')
   @Permissions('view_supplier')
-  async findOne(@Param('id') id: number) {
+  async findOne(@Param('id', ParseIntPipe) id: number) {
     return await this.suppliersService.findOne(+id);
   }
 
   @Patch(':id')
   @Permissions('change_supplier')
   async update(
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateSupplierDto: UpdateSupplierDto,
   ) {
     if (id != updateSupplierDto.id)
@@ -55,7 +56,7 @@ export class SuppliersController {
 
   @Delete(':id')
   @Permissions('delete_supplier')
-  async remove(@Param('id') id: number) {
+  async remove(@Param('id', ParseIntPipe) id: number) {
     return await this.suppliersService.remove(+id);
   }
 }
