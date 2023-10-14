@@ -64,6 +64,10 @@ export const seedPermissions = [
     name: 'Can delete category',
   },
   {
+    code_name: 'import_category',
+    name: 'Can import category',
+  },
+  {
     code_name: 'add_product',
     name: 'Can add product',
   },
@@ -78,6 +82,10 @@ export const seedPermissions = [
   {
     code_name: 'delete_product',
     name: 'Can delete product',
+  },
+  {
+    code_name: 'import_product',
+    name: 'Can import product',
   },
   {
     code_name: 'add_supplier',
