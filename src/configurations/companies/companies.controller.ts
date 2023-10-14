@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   BadRequestException,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { CompaniesService } from './companies.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
@@ -37,14 +38,14 @@ export class CompaniesController {
 
   @Get(':id')
   @Permissions('view_company')
-  async findOne(@Param('id') id: number) {
+  async findOne(@Param('id', ParseIntPipe) id: number) {
     return await this.companiesService.findOne(+id);
   }
 
   @Patch(':id')
   @Permissions('change_company')
   async update(
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateCompanyDto: UpdateCompanyDto,
   ) {
     if (id != updateCompanyDto.id)
@@ -55,7 +56,7 @@ export class CompaniesController {
 
   @Delete(':id')
   @Permissions('delete_company')
-  async remove(@Param('id') id: number) {
+  async remove(@Param('id', ParseIntPipe) id: number) {
     return await this.companiesService.remove(+id);
   }
 }

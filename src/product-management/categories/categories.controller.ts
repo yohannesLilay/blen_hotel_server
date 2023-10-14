@@ -8,7 +8,15 @@ import {
   Delete,
   UseGuards,
   BadRequestException,
+  ParseIntPipe,
+  UseInterceptors,
+  UploadedFile,
+  Query,
+  ParseFilePipe,
+  MaxFileSizeValidator,
+  FileTypeValidator,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
@@ -31,20 +39,28 @@ export class CategoriesController {
 
   @Get()
   @Permissions('view_category')
-  async findAll() {
-    return await this.categoriesService.findAll();
+  async findAll(
+    @Query('page', ParseIntPipe) page = 1,
+    @Query('limit', ParseIntPipe) limit = 10,
+    @Query('search') search: string | undefined,
+  ) {
+    return await this.categoriesService.findAll(
+      Math.max(page, 1),
+      limit,
+      search,
+    );
   }
 
   @Get(':id')
   @Permissions('view_category')
-  async findOne(@Param('id') id: number) {
+  async findOne(@Param('id', ParseIntPipe) id: number) {
     return await this.categoriesService.findOne(+id);
   }
 
   @Patch(':id')
   @Permissions('change_category')
   async update(
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateCategoryDto: UpdateCategoryDto,
   ) {
     if (id != updateCategoryDto.id)
@@ -55,7 +71,27 @@ export class CategoriesController {
 
   @Delete(':id')
   @Permissions('delete_category')
-  async remove(@Param('id') id: number) {
+  async remove(@Param('id', ParseIntPipe) id: number) {
     return await this.categoriesService.remove(+id);
+  }
+
+  @Post('import')
+  @Permissions('import_category')
+  @UseInterceptors(FileInterceptor('file'))
+  async importExcel(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 4 * 1024 * 1024 }),
+          new FileTypeValidator({
+            fileType:
+              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
+    return await this.categoriesService.importExcel(file);
   }
 }

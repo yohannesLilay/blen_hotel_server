@@ -8,6 +8,7 @@ import {
   Delete,
   BadRequestException,
   UseGuards,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { RolesService } from './roles.service';
 import { CreateRoleDto } from './dto/create-role.dto';
@@ -43,13 +44,16 @@ export class RolesController {
 
   @Get(':id')
   @Permissions('view_role')
-  async findOne(@Param('id') id: number) {
+  async findOne(@Param('id', ParseIntPipe) id: number) {
     return await this.rolesService.findOne(+id);
   }
 
   @Patch(':id')
   @Permissions('change_role')
-  async update(@Param('id') id: number, @Body() updateRoleDto: UpdateRoleDto) {
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateRoleDto: UpdateRoleDto,
+  ) {
     if (id != updateRoleDto.id)
       throw new BadRequestException('ID mismatch between URL and request body');
 
@@ -58,7 +62,7 @@ export class RolesController {
 
   @Delete(':id')
   @Permissions('delete_role')
-  async remove(@Param('id') id: number) {
+  async remove(@Param('id', ParseIntPipe) id: number) {
     return await this.rolesService.remove(+id);
   }
 }

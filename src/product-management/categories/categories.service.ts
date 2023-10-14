@@ -1,6 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import * as XLSX from 'xlsx';
 
 /** DTOs */
 import { CreateCategoryDto } from './dto/create-category.dto';
@@ -21,7 +27,40 @@ export class CategoriesService {
     return await this.categoryRepository.save(category);
   }
 
-  async findAll(): Promise<Category[]> {
+  async findAll(
+    page: number,
+    limit: number,
+    search?: string,
+  ): Promise<{
+    categories: Category[];
+    total: number;
+    currentPage: number;
+    totalPages: number;
+  }> {
+    const skip = (page - 1) * limit;
+
+    const queryBuilder = this.categoryRepository
+      .createQueryBuilder('category')
+      .orderBy('category.id', 'DESC');
+
+    if (search) {
+      queryBuilder.where('(LOWER(category.name) LIKE :search', {
+        search: `%${search.toLowerCase()}%`,
+      });
+    }
+
+    const [categories, total] = await queryBuilder
+      .skip(skip)
+      .take(limit)
+      .getManyAndCount();
+
+    const currentPage = page;
+    const totalPages = Math.ceil(total / limit);
+
+    return { categories, total, currentPage, totalPages };
+  }
+
+  async findAllList(): Promise<Category[]> {
     return await this.categoryRepository.find();
   }
 
@@ -49,5 +88,62 @@ export class CategoriesService {
     if (!category) throw new NotFoundException('Category not found.');
 
     await this.categoryRepository.remove(category);
+  }
+
+  async importExcel(file: Express.Multer.File): Promise<Category[]> {
+    const workbook = XLSX.read(file.buffer, { type: 'buffer' });
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+
+    const expectedHeaders = ['name', 'description'];
+
+    const jsonData: CreateCategoryDto[] = XLSX.utils.sheet_to_json(worksheet, {
+      defval: '',
+    });
+
+    if (!jsonData.length) {
+      throw new HttpException(
+        'No data found in the worksheet',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+
+    if (
+      !expectedHeaders.every((header) => jsonData[0].hasOwnProperty(header))
+    ) {
+      throw new HttpException(
+        'Expected headers are missing in the Excel file',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+
+    for (const row of jsonData) {
+      const name = row['name'].trim();
+
+      if (!name) {
+        throw new HttpException(
+          'Category name cannot be empty or null.',
+          HttpStatus.UNPROCESSABLE_ENTITY,
+        );
+      }
+
+      if (await this.doesCategoryNameExist(name)) {
+        throw new HttpException(
+          `Category with name '${name}' already exists.`,
+          HttpStatus.CONFLICT,
+        );
+      }
+
+      row['name'] = name;
+    }
+
+    return await this.categoryRepository.save(jsonData);
+  }
+
+  async doesCategoryNameExist(name): Promise<boolean> {
+    const category = await this.categoryRepository.findOne({
+      where: { name },
+    });
+
+    return !!category;
   }
 }

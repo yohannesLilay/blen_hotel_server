@@ -9,6 +9,7 @@ import {
   UseGuards,
   BadRequestException,
   Query,
+  ParseIntPipe,
 } from '@nestjs/common';
 
 import { OrdersService } from './orders.service';
@@ -43,7 +44,7 @@ export class OrdersController {
   @Post(':id')
   @Permissions('add_purchase_order')
   async createOrderItem(
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() createOrderItemDto: CreateOrderItemDto,
   ) {
     return await this.ordersService.createOrderItem(id, createOrderItemDto);
@@ -63,14 +64,14 @@ export class OrdersController {
 
   @Get(':id')
   @Permissions('view_purchase_order')
-  async findOne(@Param('id') id: number) {
+  async findOne(@Param('id', ParseIntPipe) id: number) {
     return await this.ordersService.findOne(+id);
   }
 
   @Patch(':id')
   @Permissions('change_purchase_order')
   async update(
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateOrderDto: UpdateOrderDto,
     @User('id') userId: number,
   ) {
@@ -83,8 +84,8 @@ export class OrdersController {
   @Patch(':id/items/:item_id')
   @Permissions('change_purchase_order')
   async updateOrderItem(
-    @Param('id') id: number,
-    @Param('item_id') item_id: number,
+    @Param('id', ParseIntPipe) id: number,
+    @Param('item_id', ParseIntPipe) item_id: number,
     @Body() updateOrderItemDto: UpdateOrderItemDto,
     @User('id') userId: number,
   ) {
@@ -99,7 +100,7 @@ export class OrdersController {
   @Patch(':id/change-status')
   @Permissions('change_purchase_order')
   async updateOrderStatus(
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Query('command') command: OrderStatus,
     @User('id') userId: number,
   ) {
@@ -108,15 +109,18 @@ export class OrdersController {
 
   @Delete(':id')
   @Permissions('delete_purchase_order')
-  async remove(@Param('id') id: number, @User('id') userId: number) {
+  async remove(
+    @Param('id', ParseIntPipe) id: number,
+    @User('id') userId: number,
+  ) {
     return await this.ordersService.remove(+id, userId);
   }
 
   @Delete(':id/items/:item_id')
   @Permissions('delete_purchase_order')
   async removeOrderItem(
-    @Param('id') id: number,
-    @Param('item_id') item_id: number,
+    @Param('id', ParseIntPipe) id: number,
+    @Param('item_id', ParseIntPipe) item_id: number,
     @User('id') userId: number,
   ) {
     return await this.ordersService.removeOrderItem(+id, +item_id, userId);
