@@ -12,6 +12,9 @@ import { AccessTokenStrategy } from './strategies/accessToken.strategy';
 import { RefreshTokenStrategy } from './strategies/refreshToken.strategy';
 import { PermissionsGuard } from './guards/permissions.guard';
 
+/** Custom Validators */
+import { PasswordMatchesValidator } from './validators/password-matches.validator';
+
 @Module({
   imports: [JwtModule.register({})],
   controllers: [AuthController],
@@ -20,6 +23,7 @@ import { PermissionsGuard } from './guards/permissions.guard';
     AccessTokenStrategy,
     RefreshTokenStrategy,
     PermissionsGuard,
+    PasswordMatchesValidator,
   ],
 })
 @Global()

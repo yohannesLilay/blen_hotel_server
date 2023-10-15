@@ -101,6 +101,18 @@ export class UsersService {
     return await this.userRepository.save(user);
   }
 
+  async changeUserPassword(
+    userId: number,
+    newPassword: string,
+  ): Promise<User | undefined> {
+    const user = await this.findOne(userId);
+
+    if (!user) throw new NotFoundException('User not found.');
+
+    user.password = newPassword;
+    return this.userRepository.save(user);
+  }
+
   async setLastLogin(id: number): Promise<User> {
     const user = await this.findOne(id);
     if (!user) throw new NotFoundException('User not found.');

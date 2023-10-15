@@ -18,6 +18,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { AccessTokenGuard } from '../auth/guards/access-token.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
 import { Permissions } from '../auth/decorators/permissions.decorator';
+import { User } from '../auth/decorators/user.decorator';
 
 @UseGuards(AccessTokenGuard, PermissionsGuard)
 @Controller('users')
@@ -40,6 +41,11 @@ export class UsersController {
   @Permissions('add_user')
   async template() {
     return await this.usersService.template();
+  }
+
+  @Get('profile')
+  async profile(@User('id', ParseIntPipe) userId: number) {
+    return await this.usersService.findOne(+userId);
   }
 
   @Get(':id')
