@@ -3,6 +3,7 @@ import { Request } from 'express';
 
 /** DTOs */
 import { AuthDto } from './dto/auth.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 /** Guards */
 import { AccessTokenGuard } from './guards/access-token.guard';
@@ -33,5 +34,11 @@ export class AuthController {
     const refreshToken = req.cookies.refresh_token;
 
     return this.authService.refreshToken(email, refreshToken, req.res);
+  }
+
+  @UseGuards(AccessTokenGuard)
+  @Post('change-password')
+  async changePassword(@Body() data: ChangePasswordDto, @Req() req: Request) {
+    return await this.authService.changePassword(data, req.user['id'], req.res);
   }
 }

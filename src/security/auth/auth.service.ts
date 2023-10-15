@@ -13,6 +13,7 @@ import * as bcrypt from 'bcryptjs';
 
 /** DTOs */
 import { AuthDto } from './dto/auth.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 /** Services */
 import { UsersService } from '../users/users.service';
@@ -95,6 +96,34 @@ export class AuthService {
 
     res.status(200);
     return { statusCode: 200, message: 'Token Updated successfully.' };
+  }
+
+  async changePassword(data: ChangePasswordDto, userId: number, res: any) {
+    const user = await this.usersService.findOne(userId);
+    if (!user) throw new ForbiddenException('User not found');
+
+    const passwordMatches = await this.compareData(
+      data.current_password,
+      user.password,
+    );
+
+    if (!passwordMatches)
+      throw new BadRequestException('Current password is incorrect');
+
+    if (data.current_password === data.new_password) {
+      throw new BadRequestException(
+        'New password must be different from the current password',
+      );
+    }
+
+    const hashedNewPassword = await this.hashData(data.new_password);
+    await this.usersService.changeUserPassword(userId, hashedNewPassword);
+
+    await this.updateRefreshToken(userId, null);
+    await this.clearAuthCookies(res);
+
+    res.status(200);
+    return { statusCode: 200, message: 'Password changed successfully' };
   }
 
   async updateRefreshToken(userId: number, refreshToken: string | null) {
