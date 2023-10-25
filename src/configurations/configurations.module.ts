@@ -6,6 +6,6 @@ import { WorkFlowsModule } from './work-flows/work-flows.module';
 @Module({
   imports: [SuppliersModule, CompaniesModule, WorkFlowsModule],
   providers: [],
-  exports: [SuppliersModule, CompaniesModule],
+  exports: [SuppliersModule, CompaniesModule, WorkFlowsModule],
 })
 export class ConfigurationsModule {}
