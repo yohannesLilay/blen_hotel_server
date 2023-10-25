@@ -136,6 +136,14 @@ export const seedPermissions = [
     name: 'Can delete purchase order',
   },
   {
+    code_name: 'check_purchase_order',
+    name: 'Can check purchase order',
+  },
+  {
+    code_name: 'approve_purchase_order',
+    name: 'Can approve purchase order',
+  },
+  {
     code_name: 'add_purchase_receivable',
     name: 'Can add purchase receivable',
   },
@@ -150,5 +158,25 @@ export const seedPermissions = [
   {
     code_name: 'delete_purchase_receivable',
     name: 'Can delete purchase receivable',
+  },
+  {
+    code_name: 'approve_purchase_receivable',
+    name: 'Can approve purchase receivable',
+  },
+  {
+    code_name: 'add_work_flow',
+    name: 'Can add work_flow',
+  },
+  {
+    code_name: 'change_work_flow',
+    name: 'Can change work_flow',
+  },
+  {
+    code_name: 'view_work_flow',
+    name: 'Can view work_flow',
+  },
+  {
+    code_name: 'delete_work_flow',
+    name: 'Can delete work_flow',
   },
 ];
