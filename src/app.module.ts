@@ -38,6 +38,9 @@ import { ProductManagementModule } from './product-management/product-management
       database: process.env.POSTGRES_DATABASE,
       autoLoadEntities: true,
       synchronize: process.env.TYPEORM_SYNCHRONIZE === 'true',
+      ssl: {
+        rejectUnauthorized: false,
+      },
     }),
     SecurityModule,
     ConfigurationsModule,
