@@ -4,17 +4,20 @@ import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { useContainer } from 'class-validator';
 import * as cookieParser from 'cookie-parser';
+import helmet from 'helmet';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors({
-    origin: 'http://localhost:3002',
+    origin: process.env.CLIENT_URL
+      ? process.env.CLIENT_URL
+      : 'http://localhost:3002',
     credentials: true,
   });
 
   // Swagger configuration
   const options = new DocumentBuilder()
-    .setTitle('OSTS App')
+    .setTitle('Blen Hotel Inventory Management App')
     .setVersion('1.0')
     .build();
 
@@ -25,6 +28,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
   app.use(cookieParser());
+  app.use(helmet());
 
   await app.listen(3000);
 }
