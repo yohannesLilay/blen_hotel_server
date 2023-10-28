@@ -158,16 +158,16 @@ export class AuthService {
   async setAuthCookies(res: any, accessToken: string, refreshToken: string) {
     res.cookie('access_token', accessToken, {
       httpOnly: true,
-      secure: false,
-      sameSite: 'strict',
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'Lax' : 'strict',
       maxAge: parseTimeToMilliseconds(
         String(process.env.ACCESS_TOKEN_EXPIRATION),
       ),
     });
     res.cookie('refresh_token', refreshToken, {
       httpOnly: true,
-      secure: false,
-      sameSite: 'strict',
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'Lax' : 'strict',
       maxAge: parseTimeToMilliseconds(
         String(process.env.REFRESH_TOKEN_EXPIRATION),
       ),
