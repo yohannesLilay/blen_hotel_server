@@ -142,16 +142,16 @@ export class AuthService {
   async generateAccessToken(user: User) {
     const payload = { id: user.id, email: user.email };
     return await this.jwtService.signAsync(payload, {
-      secret: process.env.ACCESS_TOKEN_SECRET,
-      expiresIn: process.env.ACCESS_TOKEN_EXPIRATION,
+      secret: String(process.env.ACCESS_TOKEN_SECRET),
+      expiresIn: String(process.env.ACCESS_TOKEN_EXPIRATION),
     });
   }
 
   async generateRefreshToken(user: User) {
     const payload = { id: user.id, email: user.email };
     return await this.jwtService.signAsync(payload, {
-      secret: process.env.REFRESH_TOKEN_SECRET,
-      expiresIn: process.env.REFRESH_TOKEN_EXPIRATION,
+      secret: String(process.env.REFRESH_TOKEN_SECRET),
+      expiresIn: String(process.env.REFRESH_TOKEN_EXPIRATION),
     });
   }
 
@@ -160,13 +160,17 @@ export class AuthService {
       httpOnly: true,
       secure: false,
       sameSite: 'strict',
-      maxAge: parseTimeToMilliseconds(process.env.ACCESS_TOKEN_EXPIRATION),
+      maxAge: parseTimeToMilliseconds(
+        String(process.env.ACCESS_TOKEN_EXPIRATION),
+      ),
     });
     res.cookie('refresh_token', refreshToken, {
       httpOnly: true,
       secure: false,
       sameSite: 'strict',
-      maxAge: parseTimeToMilliseconds(process.env.REFRESH_TOKEN_EXPIRATION),
+      maxAge: parseTimeToMilliseconds(
+        String(process.env.REFRESH_TOKEN_EXPIRATION),
+      ),
     });
   }
 
