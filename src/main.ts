@@ -9,7 +9,7 @@ import helmet from 'helmet';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors({
-    origin: process.env.CLIENT_URL,
+    origin: String(process.env.CLIENT_URL),
     credentials: true,
   });
 
