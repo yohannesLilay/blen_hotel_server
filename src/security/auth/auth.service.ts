@@ -159,7 +159,7 @@ export class AuthService {
     res.cookie('access_token', accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'Lax' : 'strict',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'strict',
       maxAge: parseTimeToMilliseconds(
         String(process.env.ACCESS_TOKEN_EXPIRATION),
       ),
@@ -167,7 +167,7 @@ export class AuthService {
     res.cookie('refresh_token', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'Lax' : 'strict',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'strict',
       maxAge: parseTimeToMilliseconds(
         String(process.env.REFRESH_TOKEN_EXPIRATION),
       ),
