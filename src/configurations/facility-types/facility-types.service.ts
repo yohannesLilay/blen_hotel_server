@@ -35,11 +35,16 @@ export class FacilityTypesService {
   }
 
   async findAll(): Promise<FacilityType[]> {
-    return await this.facilityTypeRepository.find();
+    return await this.facilityTypeRepository.find({
+      relations: ['responsible_roles'],
+    });
   }
 
   async findOne(id: number): Promise<FacilityType> {
-    return await this.facilityTypeRepository.findOneBy({ id });
+    return await this.facilityTypeRepository.findOne({
+      where: { id },
+      relations: ['responsible_roles'],
+    });
   }
 
   async findByName(name: string): Promise<FacilityType> {
