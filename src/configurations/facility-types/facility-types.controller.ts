@@ -36,6 +36,12 @@ export class FacilityTypesController {
     return await this.facilityTypesService.findAll();
   }
 
+  @Get('template')
+  @Permissions('add_facility_type')
+  async template() {
+    return await this.facilityTypesService.template();
+  }
+
   @Get(':id')
   @Permissions('view_facility_type')
   async findOne(@Param('id', ParseIntPipe) id: number) {

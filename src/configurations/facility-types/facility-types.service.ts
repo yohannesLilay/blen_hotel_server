@@ -46,6 +46,13 @@ export class FacilityTypesService {
     return await this.facilityTypeRepository.findOne({ where: { name } });
   }
 
+  async template() {
+    const roles = await this.rolesService.findAll();
+    return {
+      roleOptions: roles,
+    };
+  }
+
   async update(
     id: number,
     updateFacilityTypeDto: UpdateFacilityTypeDto,
