@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 
@@ -78,6 +82,11 @@ export class OrdersService {
     const order = await this.findOne(id);
     if (!order) throw new NotFoundException('Order not found.');
 
+    if (order.status !== OrderStatus.REQUESTED)
+      throw new BadRequestException(
+        'It is not allowed to add a new order item.',
+      );
+
     const orderItem = this.orderItemRepository.create({
       order,
       unit_price: createOrderItemDto.unit_price,
@@ -101,6 +110,9 @@ export class OrdersService {
         'checked_by',
         'approved_by',
       ],
+      order: {
+        created_at: 'DESC',
+      },
     });
   }
 
