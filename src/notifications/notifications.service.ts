@@ -50,17 +50,17 @@ export class NotificationsService {
   }> {
     const skip = (page - 1) * limit;
 
-    const queryBuilder = this.notificationRepository
-      .createQueryBuilder('notification')
-      .orderBy('notification.id', 'DESC')
-      .where('notification.recipientId = :userId', { userId });
-
-    if (excludeRead) queryBuilder.andWhere('notification.read = false');
-
-    const [notifications, total] = await queryBuilder
-      .skip(skip)
-      .take(limit)
-      .getManyAndCount();
+    const [notifications, total] =
+      await this.notificationRepository.findAndCount({
+        relations: ['recipient'],
+        where: {
+          recipient: { id: userId },
+          ...(excludeRead ? { read: false } : {}),
+        },
+        order: { id: 'DESC' },
+        skip,
+        take: limit,
+      });
 
     const currentPage = page;
     const totalPages = Math.ceil(total / limit);
