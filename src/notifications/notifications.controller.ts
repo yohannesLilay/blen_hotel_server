@@ -9,6 +9,7 @@ import {
   ParseIntPipe,
   Query,
   ParseBoolPipe,
+  DefaultValuePipe,
 } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
 
@@ -27,10 +28,16 @@ export class NotificationsController {
   findAll(
     @Query('page', ParseIntPipe) page = 1,
     @Query('limit', ParseIntPipe) limit = 10,
-    @Query('excludeRead', ParseBoolPipe) excludeRead = true,
+    @Query('exclude_read', new DefaultValuePipe(true), ParseBoolPipe)
+    exclude_read: boolean,
     @User('id', ParseIntPipe) userId: number,
   ) {
-    return this.notificationsService.findAll(page, limit, excludeRead, +userId);
+    return this.notificationsService.findAll(
+      page,
+      limit,
+      exclude_read,
+      +userId,
+    );
   }
 
   @Get(':id')
@@ -39,8 +46,8 @@ export class NotificationsController {
   }
 
   @Patch('mark-as-read')
-  markAsRead(@Body() notificationIds: number[]) {
-    return this.notificationsService.markAsRead(notificationIds);
+  markAsRead(@Body() notification_ids: number[]) {
+    return this.notificationsService.markAsRead(notification_ids);
   }
 
   @Delete(':id')
