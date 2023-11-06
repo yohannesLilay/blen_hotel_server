@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Repository, SelectQueryBuilder } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 
 /** DTOs */
@@ -41,14 +41,14 @@ export class UsersService {
   }
 
   async findByRoles(roleIds: number[]): Promise<User[]> {
-    const queryBuilder: SelectQueryBuilder<User> =
-      this.userRepository.createQueryBuilder('user');
-
-    queryBuilder
-      .innerJoin('user.roles', 'role')
-      .where('role.id IN (:...roleIds)', { roleIds });
-
-    return queryBuilder.getMany();
+    return this.userRepository.find({
+      relations: ['roles'],
+      where: {
+        roles: {
+          id: In(roleIds),
+        },
+      },
+    });
   }
 
   async template() {

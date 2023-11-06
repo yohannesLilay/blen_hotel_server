@@ -276,4 +276,12 @@ export class ReceivablesService {
 
     await this.receivableItemRepository.remove(receivableItem);
   }
+
+  async getActiveOrderCount(): Promise<number> {
+    return await this.receivableRepository.count({
+      where: {
+        status: ReceivableStatus.REQUESTED,
+      },
+    });
+  }
 }
