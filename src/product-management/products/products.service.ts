@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import * as XLSX from 'xlsx';
 
 /** DTOs */
@@ -56,24 +56,18 @@ export class ProductsService {
   }> {
     const skip = (page - 1) * limit;
 
-    const queryBuilder = this.productRepository
-      .createQueryBuilder('product')
-      .leftJoinAndSelect('product.category', 'category')
-      .orderBy('product.id', 'DESC');
-
-    if (search) {
-      queryBuilder.where(
-        '(LOWER(product.name) LIKE :search OR LOWER(category.name) LIKE :search)',
-        {
-          search: `%${search.toLowerCase()}%`,
-        },
-      );
-    }
-
-    const [products, total] = await queryBuilder
-      .skip(skip)
-      .take(limit)
-      .getManyAndCount();
+    const [products, total] = await this.productRepository.findAndCount({
+      relations: ['category'],
+      where: search
+        ? [
+            { name: ILike(`%${search}%`) },
+            { category: { name: ILike(`%${search}%`) } },
+          ]
+        : {},
+      order: { created_at: 'DESC' },
+      skip,
+      take: limit,
+    });
 
     const currentPage = page;
     const totalPages = Math.ceil(total / limit);
