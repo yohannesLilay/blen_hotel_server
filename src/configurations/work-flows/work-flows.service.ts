@@ -70,6 +70,7 @@ export class WorkFlowsService {
   ): Promise<WorkFlow> {
     return await this.workFlowRepository.findOne({
       where: { flow_type: flowType, step: step },
+      relations: ['notify_to'],
     });
   }
 
