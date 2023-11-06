@@ -165,18 +165,38 @@ export const seedPermissions = [
   },
   {
     code_name: 'add_work_flow',
-    name: 'Can add work_flow',
+    name: 'Can add work flow',
   },
   {
     code_name: 'change_work_flow',
-    name: 'Can change work_flow',
+    name: 'Can change work flow',
   },
   {
     code_name: 'view_work_flow',
-    name: 'Can view work_flow',
+    name: 'Can view work flow',
   },
   {
     code_name: 'delete_work_flow',
-    name: 'Can delete work_flow',
+    name: 'Can delete work flow',
+  },
+  {
+    code_name: 'add_facility_type',
+    name: 'Can add facility type',
+  },
+  {
+    code_name: 'change_facility_type',
+    name: 'Can change facility type',
+  },
+  {
+    code_name: 'view_facility_type',
+    name: 'Can view facility type',
+  },
+  {
+    code_name: 'delete_facility_type',
+    name: 'Can delete facility type',
+  },
+  {
+    code_name: 'delete_notification',
+    name: 'Can delete notification',
   },
 ];

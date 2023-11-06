@@ -19,6 +19,7 @@ import { SecurityModule } from './security/security.module';
 import { ConfigurationsModule } from './configurations/configurations.module';
 import { PurchasesModule } from './purchases/purchases.module';
 import { ProductManagementModule } from './product-management/product-management.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { ProductManagementModule } from './product-management/product-management
     ConfigurationsModule,
     PurchasesModule,
     ProductManagementModule,
+    NotificationsModule,
   ],
   controllers: [],
   providers: [StartupService, SeedService],
