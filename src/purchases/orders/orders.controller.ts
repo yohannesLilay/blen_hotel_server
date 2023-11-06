@@ -24,9 +24,6 @@ import { PermissionsGuard } from 'src/security/auth/guards/permissions.guard';
 import { Permissions } from 'src/security/auth/decorators/permissions.decorator';
 import { User } from 'src/security/auth/decorators/user.decorator';
 
-/** Constants */
-import { OrderStatus } from './constants/OrderStatus.enum';
-
 @UseGuards(AccessTokenGuard, PermissionsGuard)
 @Controller('purchase-orders')
 export class OrdersController {
@@ -52,8 +49,12 @@ export class OrdersController {
 
   @Get()
   @Permissions('view_purchase_order')
-  async findAll() {
-    return await this.ordersService.findAll();
+  async findAll(
+    @Query('page', ParseIntPipe) page = 1,
+    @Query('limit', ParseIntPipe) limit = 10,
+    @Query('search') search: string | undefined,
+  ) {
+    return await this.ordersService.findAll(Math.max(page, 1), limit, search);
   }
 
   @Get('template')
@@ -97,14 +98,22 @@ export class OrdersController {
     );
   }
 
-  @Patch(':id/change-status')
-  @Permissions('change_purchase_order')
-  async updateOrderStatus(
+  @Patch(':id/check')
+  @Permissions('check_purchase_order')
+  async checkOrder(
     @Param('id', ParseIntPipe) id: number,
-    @Query('command') command: OrderStatus,
     @User('id') userId: number,
   ) {
-    return await this.ordersService.updateOrderStatus(+id, command, userId);
+    return await this.ordersService.checkOrApprove(+id, +userId, false);
+  }
+
+  @Patch(':id/approve')
+  @Permissions('approve_purchase_order')
+  async approveOrder(
+    @Param('id', ParseIntPipe) id: number,
+    @User('id') userId: number,
+  ) {
+    return await this.ordersService.checkOrApprove(+id, +userId, true);
   }
 
   @Delete(':id')
