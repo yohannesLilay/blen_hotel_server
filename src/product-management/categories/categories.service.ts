@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import * as XLSX from 'xlsx';
 
 /** DTOs */
@@ -39,20 +39,12 @@ export class CategoriesService {
   }> {
     const skip = (page - 1) * limit;
 
-    const queryBuilder = this.categoryRepository
-      .createQueryBuilder('category')
-      .orderBy('category.id', 'DESC');
-
-    if (search) {
-      queryBuilder.where('(LOWER(category.name) LIKE :search', {
-        search: `%${search.toLowerCase()}%`,
-      });
-    }
-
-    const [categories, total] = await queryBuilder
-      .skip(skip)
-      .take(limit)
-      .getManyAndCount();
+    const [categories, total] = await this.categoryRepository.findAndCount({
+      where: search ? [{ name: ILike(`%${search}%`) }] : {},
+      order: { created_at: 'DESC' },
+      skip,
+      take: limit,
+    });
 
     const currentPage = page;
     const totalPages = Math.ceil(total / limit);
