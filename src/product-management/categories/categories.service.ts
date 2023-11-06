@@ -131,6 +131,10 @@ export class CategoriesService {
     return await this.categoryRepository.save(jsonData);
   }
 
+  async getCategoryCount(): Promise<number> {
+    return await this.categoryRepository.count();
+  }
+
   async doesCategoryNameExist(name): Promise<boolean> {
     const category = await this.categoryRepository.findOne({
       where: { name },

@@ -390,4 +390,12 @@ export class OrdersService {
 
     await this.notificationsService.create(notification);
   }
+
+  async getActiveOrderCount(): Promise<number> {
+    return await this.orderRepository.count({
+      where: {
+        status: OrderStatus.REQUESTED,
+      },
+    });
+  }
 }

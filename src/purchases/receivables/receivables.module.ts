@@ -37,5 +37,6 @@ import { ValidSupplierValidator } from './validators/valid-supplier.validator';
     ValidProductValidator,
     ValidSupplierValidator,
   ],
+  exports: [ReceivablesService],
 })
 export class ReceivablesModule {}

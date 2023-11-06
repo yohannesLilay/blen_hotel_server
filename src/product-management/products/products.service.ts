@@ -227,6 +227,10 @@ export class ProductsService {
     return await this.productRepository.save(jsonData);
   }
 
+  async getProductCount(): Promise<number> {
+    return await this.productRepository.count();
+  }
+
   async doesProductNameExist(name): Promise<boolean> {
     const product = await this.productRepository.findOne({
       where: { name },
