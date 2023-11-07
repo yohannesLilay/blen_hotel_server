@@ -13,6 +13,9 @@ import {
 } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
 
+/** DTOs */
+import { MarkNotificationAsReadDto } from './dto/mark-notification-as-read.dto';
+
 /** Guards and Decorators */
 import { AccessTokenGuard } from 'src/security/auth/guards/access-token.guard';
 import { PermissionsGuard } from 'src/security/auth/guards/permissions.guard';
@@ -40,14 +43,19 @@ export class NotificationsController {
     );
   }
 
+  @Get('unread-count')
+  getUnreadCount(@User('id', ParseIntPipe) userId: number) {
+    return this.notificationsService.getUnreadCount(+userId);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.notificationsService.findOne(+id);
   }
 
   @Patch('mark-as-read')
-  markAsRead(@Body() notification_ids: number[]) {
-    return this.notificationsService.markAsRead(notification_ids);
+  markAsRead(@Body() markNotificationAsReadDto: MarkNotificationAsReadDto) {
+    return this.notificationsService.markAsRead(markNotificationAsReadDto);
   }
 
   @Delete(':id')
