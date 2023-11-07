@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { In, MoreThanOrEqual, Repository } from 'typeorm';
 
 /** DTOs */
 import { CreateNotificationDto } from './dto/create-notification.dto';
+import { MarkNotificationAsReadDto } from './dto/mark-notification-as-read.dto';
 
 /** Entities */
 import { Notification } from './entities/notification.entity';
@@ -50,12 +51,16 @@ export class NotificationsService {
   }> {
     const skip = (page - 1) * limit;
 
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
     const [notifications, total] =
       await this.notificationRepository.findAndCount({
         relations: ['recipient'],
         where: {
           recipient: { id: userId },
           ...(excludeRead ? { read: false } : {}),
+          created_at: MoreThanOrEqual(thirtyDaysAgo),
         },
         order: { id: 'DESC' },
         skip,
@@ -72,6 +77,12 @@ export class NotificationsService {
     return { notificationTypeOptions: NotificationType };
   }
 
+  async getUnreadCount(userId: number): Promise<number> {
+    return await this.notificationRepository.count({
+      where: { read: false, recipient: { id: userId } },
+    });
+  }
+
   async findOne(id: number): Promise<Notification> {
     return await this.notificationRepository.findOne({ where: { id } });
   }
@@ -82,8 +93,12 @@ export class NotificationsService {
     });
   }
 
-  async markAsRead(ids: number[]): Promise<Notification[]> {
-    const notifications = await this.findByIds(ids);
+  async markAsRead(
+    markNotificationAsReadDto: MarkNotificationAsReadDto,
+  ): Promise<Notification[]> {
+    const notifications = await this.findByIds(
+      markNotificationAsReadDto.notification_ids,
+    );
 
     if (notifications.length === 0)
       throw new NotFoundException('Notifications not found.');
