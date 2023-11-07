@@ -78,8 +78,15 @@ export class NotificationsService {
   }
 
   async getUnreadCount(userId: number): Promise<number> {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
     return await this.notificationRepository.count({
-      where: { read: false, recipient: { id: userId } },
+      where: {
+        read: false,
+        recipient: { id: userId },
+        created_at: MoreThanOrEqual(thirtyDaysAgo),
+      },
     });
   }
 
