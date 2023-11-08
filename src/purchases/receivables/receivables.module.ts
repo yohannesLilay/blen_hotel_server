@@ -15,6 +15,8 @@ import { ReceivableItem } from './entities/receivable-item.entity';
 import { SuppliersModule } from 'src/configurations/suppliers/suppliers.module';
 import { OrdersModule } from '../orders/orders.module';
 import { ProductsModule } from 'src/product-management/products/products.module';
+import { WorkFlowsModule } from 'src/configurations/work-flows/work-flows.module';
+import { NotificationsModule } from 'src/notifications/notifications.module';
 
 /** Custom Validator */
 import { UniqueReceivableNumberValidator } from './validators/unique-receivable-number.validator';
@@ -28,6 +30,8 @@ import { ValidSupplierValidator } from './validators/valid-supplier.validator';
     SuppliersModule,
     OrdersModule,
     ProductsModule,
+    WorkFlowsModule,
+    NotificationsModule,
   ],
   controllers: [ReceivablesController],
   providers: [
