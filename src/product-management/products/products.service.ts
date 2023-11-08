@@ -11,6 +11,7 @@ import * as XLSX from 'xlsx';
 /** DTOs */
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { UpdateProductsStockQuantityDto } from './dto/update-product-stock-quantity.dto';
 
 /** Services */
 import { CategoriesService } from '../categories/categories.service';
@@ -20,6 +21,7 @@ import { Product } from './entities/product.entity';
 
 /** Constants */
 import { UnitOfMeasure } from './constants/unit-of-measure.enum';
+import { ProductStockOperation } from './constants/product-stock-operation.enum';
 
 @Injectable()
 export class ProductsService {
@@ -109,6 +111,21 @@ export class ProductsService {
     product.category = await this.categoriesService.findOne(
       updateProductDto.categoryId,
     );
+
+    return await this.productRepository.save(product);
+  }
+
+  async updateStockQuantity(
+    updateProductsStockQuantity: UpdateProductsStockQuantityDto,
+  ): Promise<Product> {
+    const product = await this.findOne(updateProductsStockQuantity.product_id);
+    if (!product) throw new NotFoundException('Product not found.');
+
+    if (updateProductsStockQuantity.operation === ProductStockOperation.IN) {
+      product.stock_quantity += updateProductsStockQuantity.quantity;
+    } else {
+      product.stock_quantity -= updateProductsStockQuantity.quantity;
+    }
 
     return await this.productRepository.save(product);
   }

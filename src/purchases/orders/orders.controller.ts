@@ -58,7 +58,7 @@ export class OrdersController {
   }
 
   @Get('template')
-  @Permissions('add_purchase_order')
+  @Permissions('view_purchase_order')
   async template() {
     return await this.ordersService.template();
   }

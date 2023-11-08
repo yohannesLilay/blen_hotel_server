@@ -116,6 +116,8 @@ export class OrdersService {
       createOrderItemDto.product_id,
     );
 
+    await this.notifyOrderModification(order);
+
     return await this.orderItemRepository.save(orderItem);
   }
 
@@ -177,6 +179,7 @@ export class OrdersService {
 
   async findApprovedOrders(): Promise<Order[]> {
     return await this.orderRepository.find({
+      relations: ['items', 'items.product'],
       where: { status: OrderStatus.APPROVED },
     });
   }
@@ -233,13 +236,12 @@ export class OrdersService {
     const order = await this.findOne(id);
     if (!order) throw new NotFoundException('Order not found');
 
-    const action = isApproval ? 'approved' : 'checked';
     const actor = isApproval ? 'approved' : 'checked';
 
     order[`${actor}_by`] = await this.usersService.findOne(userId);
     order.status = isApproval ? OrderStatus.APPROVED : OrderStatus.CHECKED;
 
-    await this.notifyOrderAction(order, action, actor);
+    await this.notifyOrderAction(order, actor, isApproval);
 
     return await this.orderRepository.save(order);
   }
@@ -256,12 +258,9 @@ export class OrdersService {
     await queryRunner.startTransaction();
 
     try {
+      this.notifyOrderRemoval(order);
       await this.orderItemRepository.remove(order.items);
       await this.orderRepository.remove(order);
-
-      const notificationMessage = `Purchase order (${order.order_number}) has been deleted.`;
-      await this.notifyUsers(notificationMessage);
-      await this.notifyAdminUser(notificationMessage);
     } catch (err) {
       await queryRunner.rollbackTransaction();
     } finally {
@@ -281,6 +280,8 @@ export class OrdersService {
 
     const orderItem = await this.findOneItem(itemId);
     if (!orderItem) throw new NotFoundException('Order Item not found.');
+
+    this.notifyOrderModification(order);
 
     await this.orderItemRepository.remove(orderItem);
   }
@@ -312,7 +313,7 @@ export class OrdersService {
   private async notifyOrderCreation(order: Order) {
     const notificationMessage = `Purchase order (${order.order_number}) has been created & is ready for review.`;
     await Promise.all([
-      this.notifyUsers(notificationMessage),
+      this.notifyUsers(notificationMessage, FlowStep.REQUEST),
       this.notifyAdminUser(notificationMessage),
     ]);
   }
@@ -320,17 +321,26 @@ export class OrdersService {
   private async notifyOrderModification(order: Order) {
     const notificationMessage = `Purchase order (${order.order_number}) has been modified & is ready for review.`;
     await Promise.all([
-      this.notifyUsers(notificationMessage),
+      this.notifyUsers(notificationMessage, FlowStep.REQUEST),
       this.notifyAdminUser(notificationMessage),
     ]);
   }
 
-  private async notifyOrderAction(order: Order, action: string, actor: string) {
+  private async notifyOrderAction(
+    order: Order,
+    actor: string,
+    isApproval: boolean,
+  ) {
+    const action = isApproval ? 'approved' : 'checked';
+
     const notificationMessage = `Purchase order ${
       order.order_number
     } has been ${action} by ${order[`${actor}_by`].name}.`;
     await Promise.all([
-      this.notifyUsers(notificationMessage),
+      this.notifyUsers(
+        notificationMessage,
+        isApproval ? FlowStep.APPROVE : FlowStep.CHECK,
+      ),
       this.notifyAdminUser(notificationMessage),
       this.notifyRequester(
         `Your purchase order (${
@@ -341,10 +351,19 @@ export class OrdersService {
     ]);
   }
 
-  private async notifyUsers(notificationMessage: string): Promise<void> {
+  private async notifyOrderRemoval(order: Order) {
+    const notificationMessage = `Purchase order (${order.order_number}) has been deleted.`;
+    await this.notifyUsers(notificationMessage, FlowStep.REQUEST);
+    await this.notifyAdminUser(notificationMessage);
+  }
+
+  private async notifyUsers(
+    notificationMessage: string,
+    flowStep: FlowStep,
+  ): Promise<void> {
     const workFlow = await this.workFlowsService.findByFlowTypeAndStep(
       FlowType.PURCHASE_ORDER,
-      FlowStep.REQUEST,
+      flowStep,
     );
 
     if (workFlow) {

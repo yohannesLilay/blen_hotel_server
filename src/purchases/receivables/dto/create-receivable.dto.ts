@@ -45,10 +45,10 @@ export class CreateReceivableDto {
   @IsNotEmpty()
   receivable_date: Date;
 
+  @IsOptional()
   @IsInt()
-  @IsNotEmpty()
   @Validate(ValidOrderValidator)
-  order_id: number;
+  order_id?: number;
 
   @IsInt()
   @IsOptional()

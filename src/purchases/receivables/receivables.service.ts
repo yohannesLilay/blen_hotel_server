@@ -1,6 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, ILike, QueryRunner, Repository } from 'typeorm';
 
 /** DTOs */
 import { CreateReceivableDto } from './dto/create-receivable.dto';
@@ -17,9 +21,15 @@ import { OrdersService } from '../orders/orders.service';
 import { ProductsService } from 'src/product-management/products/products.service';
 import { UsersService } from 'src/security/users/users.service';
 import { SuppliersService } from 'src/configurations/suppliers/suppliers.service';
+import { WorkFlowsService } from 'src/configurations/work-flows/work-flows.service';
+import { NotificationsService } from 'src/notifications/notifications.service';
 
 /** Constants */
 import { ReceivableStatus } from './constants/receivable-status.enum';
+import { NotificationType } from 'src/notifications/constants/notification-type.enum';
+import { FlowType } from 'src/configurations/work-flows/constants/flow-type.enum';
+import { FlowStep } from 'src/configurations/work-flows/constants/flow-step.enum';
+import { ProductStockOperation } from 'src/product-management/products/constants/product-stock-operation.enum';
 
 @Injectable()
 export class ReceivablesService {
@@ -32,6 +42,8 @@ export class ReceivablesService {
     private readonly productsService: ProductsService,
     private readonly usersService: UsersService,
     private readonly suppliersService: SuppliersService,
+    private readonly workFlowsService: WorkFlowsService,
+    private readonly notificationsService: NotificationsService,
     private dataSource: DataSource,
   ) {}
 
@@ -45,48 +57,62 @@ export class ReceivablesService {
     await queryRunner.startTransaction();
 
     try {
-      const receivable = this.receivableRepository.create({
-        receivable_number: createReceivableDto.receivable_number,
-        receivable_date: createReceivableDto.receivable_date,
-        status: ReceivableStatus.REQUESTED,
-      });
-      receivable.prepared_by = await this.usersService.findOne(userId);
-      receivable.order = await this.ordersService.findOne(
-        createReceivableDto.order_id,
+      console.log('here');
+      const savedReceivable = await this.createReceivable(
+        createReceivableDto,
+        userId,
+        queryRunner,
       );
-      receivable.supplier = await this.suppliersService.findOne(
-        createReceivableDto.supplier_id,
-      );
-
-      const savedReceivable = await queryRunner.manager.save(
-        Receivable,
-        receivable,
-      );
-
-      for (const item of createReceivableDto.items) {
-        const receivableItem = this.receivableItemRepository.create({
-          receivable: savedReceivable,
-          quantity: item.quantity,
-          unit_price: item.unit_price,
-          total_price: item.unit_price * item.quantity,
-          remark: item.remark,
-        });
-
-        receivableItem.product = await this.productsService.findOne(
-          item.product_id,
-        );
-
-        await queryRunner.manager.save(ReceivableItem, receivableItem);
-      }
+      await this.notifyReceivableCreation(savedReceivable);
 
       await queryRunner.commitTransaction();
-
       return savedReceivable;
     } catch (err) {
       await queryRunner.rollbackTransaction();
     } finally {
       await queryRunner.release();
     }
+  }
+
+  private async createReceivable(
+    createReceivableDto: CreateReceivableDto,
+    userId: number,
+    queryRunner: QueryRunner,
+  ): Promise<Receivable> {
+    const receivable = this.receivableRepository.create({
+      receivable_number: createReceivableDto.receivable_number,
+      receivable_date: createReceivableDto.receivable_date,
+      status: ReceivableStatus.REQUESTED,
+    });
+
+    receivable.prepared_by = await this.usersService.findOne(userId);
+    receivable.order = createReceivableDto.order_id
+      ? await this.ordersService.findOne(createReceivableDto.order_id)
+      : null;
+    receivable.supplier = createReceivableDto.supplier_id
+      ? await this.suppliersService.findOne(createReceivableDto?.supplier_id)
+      : null;
+    console.log(receivable.supplier, receivable.order);
+    const savedReceivable = await queryRunner.manager.save(
+      Receivable,
+      receivable,
+    );
+
+    for (const item of createReceivableDto.items) {
+      const receivableItem = this.receivableItemRepository.create({
+        receivable: savedReceivable,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        total_price: item.unit_price * item.quantity,
+        remark: item.remark,
+      });
+      receivableItem.product = await this.productsService.findOne(
+        item.product_id,
+      );
+      await queryRunner.manager.save(ReceivableItem, receivableItem);
+    }
+
+    return savedReceivable;
   }
 
   async createReceivableItem(
@@ -108,19 +134,42 @@ export class ReceivablesService {
       createReceivableItemDto.product_id,
     );
 
+    await this.notifyReceivableModification(receivable);
+
     return await this.receivableItemRepository.save(receivableItem);
   }
 
-  async findAll(): Promise<Receivable[]> {
-    return await this.receivableRepository.find({
+  async findAll(
+    page: number,
+    limit: number,
+    search?: string,
+  ): Promise<{
+    receivables: Receivable[];
+    total: number;
+    currentPage: number;
+    totalPages: number;
+  }> {
+    const skip = (page - 1) * limit;
+
+    const [receivables, total] = await this.receivableRepository.findAndCount({
       relations: [
         'items',
         'items.product',
         'prepared_by',
         'received_by',
         'supplier',
+        'order',
       ],
+      where: search ? [{ receivable_number: ILike(`%${search}%`) }] : {},
+      order: { created_at: 'DESC' },
+      skip,
+      take: limit,
     });
+
+    const currentPage = page;
+    const totalPages = Math.ceil(total / limit);
+
+    return { receivables, total, currentPage, totalPages };
   }
 
   async template() {
@@ -143,6 +192,7 @@ export class ReceivablesService {
         'prepared_by',
         'received_by',
         'supplier',
+        'order',
       ],
     });
   }
@@ -167,19 +217,15 @@ export class ReceivablesService {
     const receivable = await this.findOne(id);
     if (!receivable) throw new NotFoundException('Receivable not found.');
 
-    if (receivable.status != ReceivableStatus.REQUESTED)
-      throw new NotFoundException('Receivable status does not allow updates.');
-
-    if (receivable.prepared_by?.id != userId)
-      throw new NotFoundException(
-        'Not allowed to update this purchase receivable.',
-      );
+    this.checkReceivableForUpdate(receivable, userId);
 
     receivable.receivable_number = updateReceivableDto.receivable_number;
     receivable.receivable_date = updateReceivableDto.receivable_date;
     receivable.supplier = await this.suppliersService.findOne(
       updateReceivableDto.supplier_id,
     );
+
+    this.notifyReceivableModification(receivable);
 
     return await this.receivableRepository.save(receivable);
   }
@@ -193,13 +239,7 @@ export class ReceivablesService {
     const receivable = await this.findOne(id);
     if (!receivable) throw new NotFoundException('Receivable not found.');
 
-    if (receivable.status != ReceivableStatus.REQUESTED)
-      throw new NotFoundException('Receivable status does not allow updates.');
-
-    if (receivable.prepared_by?.id != userId)
-      throw new NotFoundException(
-        'Not allowed to update this purchase receivable.',
-      );
+    this.checkReceivableForUpdate(receivable, userId);
 
     const receivableItem = await this.findOneItem(itemId);
     if (!receivableItem)
@@ -211,18 +251,21 @@ export class ReceivablesService {
     receivableItem.total_price =
       receivableItem.unit_price * receivableItem.quantity;
 
+    this.notifyReceivableModification(receivable);
+
     return await this.receivableItemRepository.save(receivableItem);
   }
 
-  async updateReceivableStatus(
-    id: number,
-    userId: number,
-  ): Promise<Receivable> {
+  async approve(id: number, userId: number) {
     const receivable = await this.findOne(id);
-    if (!receivable) throw new NotFoundException('Receivable not found.');
+    if (!receivable) throw new NotFoundException('Receivable not found');
 
     receivable.received_by = await this.usersService.findOne(userId);
     receivable.status = ReceivableStatus.RECEIVED;
+
+    await this.updateProductsStockQuantity(receivable.items);
+
+    await this.notifyReceivableAction(receivable);
 
     return await this.receivableRepository.save(receivable);
   }
@@ -231,13 +274,7 @@ export class ReceivablesService {
     const receivable = await this.findOne(id);
     if (!receivable) throw new NotFoundException('Receivable not found.');
 
-    if (receivable.status != ReceivableStatus.REQUESTED)
-      throw new NotFoundException('This receivable can not be deleted.');
-
-    if (receivable.prepared_by?.id != userId)
-      throw new NotFoundException(
-        'Not allowed to delete this purchase receivable.',
-      );
+    this.checkReceivableForDelete(receivable, userId);
 
     const queryRunner = this.dataSource.createQueryRunner();
 
@@ -245,6 +282,7 @@ export class ReceivablesService {
     await queryRunner.startTransaction();
 
     try {
+      this.notifyReceivableRemoval(receivable);
       await this.receivableItemRepository.remove(receivable.items);
       await this.receivableRepository.remove(receivable);
     } catch (err) {
@@ -262,19 +300,140 @@ export class ReceivablesService {
     const receivable = await this.findOne(id);
     if (!receivable) throw new NotFoundException('Receivable not found.');
 
-    if (receivable.status != ReceivableStatus.REQUESTED)
-      throw new NotFoundException('This receivables item can not be deleted.');
-
-    if (receivable.prepared_by?.id != userId)
-      throw new NotFoundException(
-        'Not allowed to delete this purchase receivable.',
-      );
+    this.checkReceivableForDelete(receivable, userId);
 
     const receivableItem = await this.findOneItem(itemId);
     if (!receivableItem)
       throw new NotFoundException('Receivable Item not found.');
 
+    this.notifyReceivableModification(receivable);
+
     await this.receivableItemRepository.remove(receivableItem);
+  }
+
+  private checkReceivableForUpdate(receivable: Receivable, userId: number) {
+    if (receivable.status != ReceivableStatus.REQUESTED) {
+      throw new BadRequestException(
+        'Receivable status does not allow updates.',
+      );
+    }
+
+    if (receivable.prepared_by?.id != userId) {
+      throw new BadRequestException(
+        'Not allowed to update this purchase receivable.',
+      );
+    }
+  }
+
+  private checkReceivableForDelete(receivable: Receivable, userId: number) {
+    if (receivable.status != ReceivableStatus.REQUESTED) {
+      throw new BadRequestException(
+        'This receivables item can not be deleted.',
+      );
+    }
+
+    if (receivable.prepared_by?.id != userId) {
+      throw new BadRequestException(
+        'Not allowed to delete this purchase receivable.',
+      );
+    }
+  }
+
+  private async updateProductsStockQuantity(receivableItems: ReceivableItem[]) {
+    for (const item of receivableItems) {
+      await this.productsService.updateStockQuantity({
+        operation: ProductStockOperation.IN,
+        quantity: item.quantity,
+        product_id: item.product.id,
+      });
+    }
+  }
+
+  private async notifyReceivableCreation(receivable: Receivable) {
+    const notificationMessage = `Purchase receivable (${receivable.receivable_number}) has been created & is ready for review.`;
+    await Promise.all([
+      this.notifyUsers(notificationMessage, FlowStep.REQUEST),
+      this.notifyAdminUser(notificationMessage),
+    ]);
+  }
+
+  private async notifyReceivableModification(receivable: Receivable) {
+    const notificationMessage = `Purchase receivable (${receivable.receivable_number}) has been modified & is ready for review.`;
+    await Promise.all([
+      this.notifyUsers(notificationMessage, FlowStep.REQUEST),
+      this.notifyAdminUser(notificationMessage),
+    ]);
+  }
+
+  private async notifyReceivableAction(receivable: Receivable) {
+    const notificationMessage = `Purchase receivable ${receivable.receivable_number} has been approved by ${receivable.received_by.name}.`;
+    await Promise.all([
+      this.notifyUsers(notificationMessage, FlowStep.APPROVE),
+      this.notifyAdminUser(notificationMessage),
+      this.notifyRequester(
+        `Your purchase receivable (${receivable.receivable_number}) has been successfully approved by ${receivable.received_by.name}`,
+        receivable.prepared_by.id,
+      ),
+    ]);
+  }
+
+  private async notifyReceivableRemoval(receivable: Receivable) {
+    const notificationMessage = `Purchase receivable (${receivable.receivable_number}) has been deleted.`;
+    await this.notifyUsers(notificationMessage, FlowStep.REQUEST);
+    await this.notifyAdminUser(notificationMessage);
+  }
+
+  private async notifyUsers(
+    notificationMessage: string,
+    flowStep: FlowStep,
+  ): Promise<void> {
+    const workFlow = await this.workFlowsService.findByFlowTypeAndStep(
+      FlowType.PURCHASE_RECEIVABLE,
+      flowStep,
+    );
+
+    if (workFlow) {
+      const rolesToNotify = workFlow.notify_to;
+      const usersToNotify = await this.usersService.findByRoles(
+        rolesToNotify.map((role) => role.id),
+      );
+
+      for (const user of usersToNotify) {
+        const notification = {
+          message: notificationMessage,
+          recipient: user.id,
+          notification_type: NotificationType.ACTION,
+        };
+
+        await this.notificationsService.create(notification);
+      }
+    }
+  }
+
+  private async notifyAdminUser(notificationMessage): Promise<void> {
+    const adminUsers = await this.usersService.findByRoles([1]);
+    for (const user of adminUsers) {
+      const notification = {
+        message: notificationMessage,
+        recipient: user.id,
+        notification_type: NotificationType.INFO,
+      };
+
+      await this.notificationsService.create(notification);
+    }
+  }
+
+  private async notifyRequester(
+    notificationMessage: string,
+    recipient: number,
+  ): Promise<void> {
+    const notification = {
+      message: notificationMessage,
+      recipient: recipient,
+      notification_type: NotificationType.INFO,
+    };
+
+    await this.notificationsService.create(notification);
   }
 
   async getActiveOrderCount(): Promise<number> {

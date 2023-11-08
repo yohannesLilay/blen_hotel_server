@@ -9,6 +9,7 @@ import {
   UseGuards,
   BadRequestException,
   ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 
 import { ReceivablesService } from './receivables.service';
@@ -51,12 +52,20 @@ export class ReceivablesController {
 
   @Get()
   @Permissions('view_purchase_receivable')
-  async findAll() {
-    return await this.receivablesService.findAll();
+  async findAll(
+    @Query('page', ParseIntPipe) page = 1,
+    @Query('limit', ParseIntPipe) limit = 10,
+    @Query('search') search: string | undefined,
+  ) {
+    return await this.receivablesService.findAll(
+      Math.max(page, 1),
+      limit,
+      search,
+    );
   }
 
   @Get('template')
-  @Permissions('add_purchase_receivable')
+  @Permissions('view_purchase_receivable')
   async template() {
     return await this.receivablesService.template();
   }
@@ -100,13 +109,13 @@ export class ReceivablesController {
     );
   }
 
-  @Patch(':id/change-status')
-  @Permissions('change_purchase_receivable')
-  async updateReceivableStatus(
+  @Patch(':id/approve')
+  @Permissions('approve_purchase_receivable')
+  async approveReceivable(
     @Param('id', ParseIntPipe) id: number,
     @User('id') userId: number,
   ) {
-    return await this.receivablesService.updateReceivableStatus(+id, userId);
+    return await this.receivablesService.approve(+id, +userId);
   }
 
   @Delete(':id')
