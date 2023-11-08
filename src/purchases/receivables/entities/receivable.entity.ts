@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   OneToMany,
   OneToOne,
@@ -25,7 +26,8 @@ export class Receivable {
   @Column()
   receivable_date: Date;
 
-  @OneToOne(() => Order)
+  @OneToOne(() => Order, { nullable: true })
+  @JoinColumn()
   order: Order;
 
   @OneToMany(() => ReceivableItem, (item) => item.receivable, {
