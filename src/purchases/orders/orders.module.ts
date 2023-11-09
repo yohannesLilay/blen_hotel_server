@@ -20,6 +20,9 @@ import { WorkFlowsModule } from 'src/configurations/work-flows/work-flows.module
 import { UniqueOrderNumberValidator } from './validators/unique-order-number.validator';
 import { ValidProductValidator } from './validators/valid-product.validator';
 
+/** Gateways */
+import { WebSocketsGateway } from 'src/web-sockets/web-sockets.gateway';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([Order, OrderItem]),
@@ -28,7 +31,12 @@ import { ValidProductValidator } from './validators/valid-product.validator';
     WorkFlowsModule,
   ],
   controllers: [OrdersController],
-  providers: [OrdersService, UniqueOrderNumberValidator, ValidProductValidator],
+  providers: [
+    OrdersService,
+    UniqueOrderNumberValidator,
+    ValidProductValidator,
+    WebSocketsGateway,
+  ],
   exports: [OrdersService],
 })
 export class OrdersModule {}
