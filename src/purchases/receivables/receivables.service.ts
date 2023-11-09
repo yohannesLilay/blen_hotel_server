@@ -31,6 +31,9 @@ import { FlowType } from 'src/configurations/work-flows/constants/flow-type.enum
 import { FlowStep } from 'src/configurations/work-flows/constants/flow-step.enum';
 import { ProductStockOperation } from 'src/product-management/products/constants/product-stock-operation.enum';
 
+/** Gateways */
+import { WebSocketsGateway } from 'src/web-sockets/web-sockets.gateway';
+
 @Injectable()
 export class ReceivablesService {
   constructor(
@@ -44,6 +47,7 @@ export class ReceivablesService {
     private readonly suppliersService: SuppliersService,
     private readonly workFlowsService: WorkFlowsService,
     private readonly notificationsService: NotificationsService,
+    private readonly wsGateway: WebSocketsGateway,
     private dataSource: DataSource,
   ) {}
 
@@ -406,6 +410,9 @@ export class ReceivablesService {
         };
 
         await this.notificationsService.create(notification);
+        this.wsGateway.server
+          .to(String(user.id))
+          .emit('notification', notification);
       }
     }
   }
@@ -420,6 +427,9 @@ export class ReceivablesService {
       };
 
       await this.notificationsService.create(notification);
+      this.wsGateway.server
+        .to(String(user.id))
+        .emit('notification', notification);
     }
   }
 
@@ -434,6 +444,9 @@ export class ReceivablesService {
     };
 
     await this.notificationsService.create(notification);
+    this.wsGateway.server
+      .to(String(recipient))
+      .emit('notification', notification);
   }
 
   async getActiveOrderCount(): Promise<number> {

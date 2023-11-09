@@ -21,6 +21,7 @@ import { PurchasesModule } from './purchases/purchases.module';
 import { ProductManagementModule } from './product-management/product-management.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { ReportsModule } from './reports/reports.module';
+import { WebSocketsGateway } from './web-sockets/web-sockets.gateway';
 
 @Module({
   imports: [
@@ -49,7 +50,7 @@ import { ReportsModule } from './reports/reports.module';
     ReportsModule,
   ],
   controllers: [],
-  providers: [StartupService, SeedService],
+  providers: [StartupService, SeedService, WebSocketsGateway],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

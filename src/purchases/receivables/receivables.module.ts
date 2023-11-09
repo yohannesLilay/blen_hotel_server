@@ -24,6 +24,9 @@ import { ValidOrderValidator } from './validators/valid-order.validator';
 import { ValidProductValidator } from './validators/valid-product.validator';
 import { ValidSupplierValidator } from './validators/valid-supplier.validator';
 
+/** Gateways */
+import { WebSocketsGateway } from 'src/web-sockets/web-sockets.gateway';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([Receivable, ReceivableItem]),
@@ -40,6 +43,7 @@ import { ValidSupplierValidator } from './validators/valid-supplier.validator';
     ValidOrderValidator,
     ValidProductValidator,
     ValidSupplierValidator,
+    WebSocketsGateway,
   ],
   exports: [ReceivablesService],
 })
