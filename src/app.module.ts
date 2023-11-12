@@ -22,6 +22,7 @@ import { ProductManagementModule } from './product-management/product-management
 import { NotificationsModule } from './notifications/notifications.module';
 import { ReportsModule } from './reports/reports.module';
 import { WebSocketsGateway } from './web-sockets/web-sockets.gateway';
+import { SalesModule } from './sales/sales.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { WebSocketsGateway } from './web-sockets/web-sockets.gateway';
     ProductManagementModule,
     NotificationsModule,
     ReportsModule,
+    SalesModule,
   ],
   controllers: [],
   providers: [StartupService, SeedService, WebSocketsGateway],
