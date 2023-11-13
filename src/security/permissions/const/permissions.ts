@@ -199,4 +199,24 @@ export const seedPermissions = [
     code_name: 'delete_notification',
     name: 'Can delete notification',
   },
+  {
+    code_name: 'add_store_requisition',
+    name: 'Can add store requisition',
+  },
+  {
+    code_name: 'change_store_requisition',
+    name: 'Can change store requisition',
+  },
+  {
+    code_name: 'view_store_requisition',
+    name: 'Can view store requisition',
+  },
+  {
+    code_name: 'delete_store_requisition',
+    name: 'Can delete store requisition',
+  },
+  {
+    code_name: 'approve_store_requisition',
+    name: 'Can approve store requisition',
+  },
 ];
