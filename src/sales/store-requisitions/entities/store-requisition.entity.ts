@@ -1,6 +1,7 @@
 import {
   Column,
   CreateDateColumn,
+  Entity,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -10,6 +11,7 @@ import { StoreRequisitionItem } from './store-requisition-item.entity';
 import { User } from 'src/security/users/entities/user.entity';
 import { StoreRequisitionStatus } from '../constants/store-requisition-status.enum';
 
+@Entity()
 export class StoreRequisition {
   @PrimaryGeneratedColumn()
   id: number;
