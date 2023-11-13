@@ -96,7 +96,6 @@ export class ReceivablesService {
     receivable.supplier = createReceivableDto.supplier_id
       ? await this.suppliersService.findOne(createReceivableDto?.supplier_id)
       : null;
-    console.log(receivable.supplier, receivable.order);
     const savedReceivable = await queryRunner.manager.save(
       Receivable,
       receivable,
@@ -225,9 +224,10 @@ export class ReceivablesService {
 
     receivable.receivable_number = updateReceivableDto.receivable_number;
     receivable.receivable_date = updateReceivableDto.receivable_date;
-    receivable.supplier = await this.suppliersService.findOne(
-      updateReceivableDto.supplier_id,
-    );
+    receivable.supplier =
+      updateReceivableDto.supplier_id !== null
+        ? await this.suppliersService.findOne(updateReceivableDto?.supplier_id)
+        : null;
 
     this.notifyReceivableModification(receivable);
 
