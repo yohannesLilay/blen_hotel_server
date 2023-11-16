@@ -219,4 +219,40 @@ export const seedPermissions = [
     code_name: 'approve_store_requisition',
     name: 'Can approve store requisition',
   },
+  {
+    code_name: 'add_menu',
+    name: 'Can add menu',
+  },
+  {
+    code_name: 'change_menu',
+    name: 'Can change menu',
+  },
+  {
+    code_name: 'view_menu',
+    name: 'Can view menu',
+  },
+  {
+    code_name: 'delete_menu',
+    name: 'Can delete menu',
+  },
+  {
+    code_name: 'import_menu',
+    name: 'Can import menu',
+  },
+  {
+    code_name: 'add_staff',
+    name: 'Can add staff',
+  },
+  {
+    code_name: 'change_staff',
+    name: 'Can change staff',
+  },
+  {
+    code_name: 'view_staff',
+    name: 'Can view staff',
+  },
+  {
+    code_name: 'delete_staff',
+    name: 'Can delete staff',
+  },
 ];
