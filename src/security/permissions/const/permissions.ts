@@ -196,30 +196,6 @@ export const seedPermissions = [
     name: 'Can delete facility type',
   },
   {
-    code_name: 'delete_notification',
-    name: 'Can delete notification',
-  },
-  {
-    code_name: 'add_store_requisition',
-    name: 'Can add store requisition',
-  },
-  {
-    code_name: 'change_store_requisition',
-    name: 'Can change store requisition',
-  },
-  {
-    code_name: 'view_store_requisition',
-    name: 'Can view store requisition',
-  },
-  {
-    code_name: 'delete_store_requisition',
-    name: 'Can delete store requisition',
-  },
-  {
-    code_name: 'approve_store_requisition',
-    name: 'Can approve store requisition',
-  },
-  {
     code_name: 'add_menu',
     name: 'Can add menu',
   },
@@ -254,5 +230,49 @@ export const seedPermissions = [
   {
     code_name: 'delete_staff',
     name: 'Can delete staff',
+  },
+  {
+    code_name: 'delete_notification',
+    name: 'Can delete notification',
+  },
+  {
+    code_name: 'add_store_requisition',
+    name: 'Can add store requisition',
+  },
+  {
+    code_name: 'change_store_requisition',
+    name: 'Can change store requisition',
+  },
+  {
+    code_name: 'view_store_requisition',
+    name: 'Can view store requisition',
+  },
+  {
+    code_name: 'delete_store_requisition',
+    name: 'Can delete store requisition',
+  },
+  {
+    code_name: 'approve_store_requisition',
+    name: 'Can approve store requisition',
+  },
+  {
+    code_name: 'add_captain_order',
+    name: 'Can add captain order',
+  },
+  {
+    code_name: 'change_captain_order',
+    name: 'Can change captain order',
+  },
+  {
+    code_name: 'view_captain_order',
+    name: 'Can view captain order',
+  },
+  {
+    code_name: 'delete_captain_order',
+    name: 'Can delete captain order',
+  },
+  {
+    code_name: 'print_captain_order',
+    name: 'Can print captain order',
   },
 ];

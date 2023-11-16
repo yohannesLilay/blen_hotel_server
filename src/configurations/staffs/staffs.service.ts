@@ -28,6 +28,12 @@ export class StaffsService {
     return await this.staffRepository.find();
   }
 
+  async findByStaffType(staffType: StaffType): Promise<Staff[]> {
+    return await this.staffRepository.find({
+      where: { staff_type: staffType },
+    });
+  }
+
   async findOne(id: number): Promise<Staff> {
     return await this.staffRepository.findOne({ where: { id } });
   }

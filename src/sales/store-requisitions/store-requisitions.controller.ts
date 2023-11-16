@@ -114,8 +114,8 @@ export class StoreRequisitionsController {
   }
 
   @Patch(':id/approve')
-  @Permissions('approve_purchase_receivable')
-  async approveReceivable(
+  @Permissions('approve_store_requisition')
+  async approveStoreRequisition(
     @Param('id', ParseIntPipe) id: number,
     @User('id') userId: number,
   ) {
