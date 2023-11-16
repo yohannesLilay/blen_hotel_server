@@ -1,12 +1,17 @@
+import { FacilityType } from 'src/configurations/facility-types/entities/facility-type.entity';
+import { Staff } from 'src/configurations/staffs/entities/staff.entity';
 import { User } from 'src/security/users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { CaptainOrderStatus } from '../constants/captain-order-status.enum';
+import { CaptainOrderItem } from './captain-order-item.entity';
 
 @Entity()
 export class CaptainOrder {
@@ -22,7 +27,23 @@ export class CaptainOrder {
   @ManyToOne(() => User)
   created_by: User;
 
-  // waiter(staff) & from(facility type)
+  @ManyToOne(() => Staff)
+  waiter: Staff;
+
+  @ManyToOne(() => FacilityType)
+  facility_type: FacilityType;
+
+  @OneToMany(() => CaptainOrderItem, (item) => item.captain_order, {
+    cascade: true,
+  })
+  items: CaptainOrderItem[];
+
+  @Column({
+    type: 'enum',
+    enum: CaptainOrderStatus,
+    default: CaptainOrderStatus.CREATED,
+  })
+  status: CaptainOrderStatus;
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;

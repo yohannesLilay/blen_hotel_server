@@ -52,6 +52,10 @@ export class MenusService {
     return { menus, total, currentPage, totalPages };
   }
 
+  async findAllList(): Promise<Menu[]> {
+    return await this.menuRepository.find();
+  }
+
   async findOne(id: number): Promise<Menu> {
     return await this.menuRepository.findOne({ where: { id } });
   }
