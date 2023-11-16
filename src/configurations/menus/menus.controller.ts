@@ -9,7 +9,14 @@ import {
   UseGuards,
   ParseIntPipe,
   BadRequestException,
+  Query,
+  UseInterceptors,
+  UploadedFile,
+  ParseFilePipe,
+  MaxFileSizeValidator,
+  FileTypeValidator,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { MenusService } from './menus.service';
 import { CreateMenuDto } from './dto/create-menu.dto';
 import { UpdateMenuDto } from './dto/update-menu.dto';
@@ -32,8 +39,12 @@ export class MenusController {
 
   @Get()
   @Permissions('view_menu')
-  async findAll() {
-    return await this.menusService.findAll();
+  async findAll(
+    @Query('page', ParseIntPipe) page = 1,
+    @Query('limit', ParseIntPipe) limit = 10,
+    @Query('search') search: string | undefined,
+  ) {
+    return await this.menusService.findAll(Math.max(page, 1), limit, search);
   }
 
   @Get(':id')
@@ -58,5 +69,25 @@ export class MenusController {
   @Permissions('delete_menu')
   async remove(@Param('id', ParseIntPipe) id: number) {
     return await this.menusService.remove(+id);
+  }
+
+  @Post('import')
+  @Permissions('import_product')
+  @UseInterceptors(FileInterceptor('file'))
+  async importExcel(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 4 * 1024 * 1024 }),
+          new FileTypeValidator({
+            fileType:
+              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
+    return await this.menusService.importExcel(file);
   }
 }
