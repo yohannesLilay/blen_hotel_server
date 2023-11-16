@@ -1,6 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
+import * as XLSX from 'xlsx';
 
 /** DTOs */
 import { CreateMenuDto } from './dto/create-menu.dto';
@@ -21,8 +27,29 @@ export class MenusService {
     return await this.menuRepository.save(menu);
   }
 
-  async findAll(): Promise<Menu[]> {
-    return await this.menuRepository.find();
+  async findAll(
+    page: number,
+    limit: number,
+    search?: string,
+  ): Promise<{
+    menus: Menu[];
+    total: number;
+    currentPage: number;
+    totalPages: number;
+  }> {
+    const skip = (page - 1) * limit;
+
+    const [menus, total] = await this.menuRepository.findAndCount({
+      where: search ? [{ item: ILike(`%${search}%`) }] : {},
+      order: { created_at: 'DESC' },
+      skip,
+      take: limit,
+    });
+
+    const currentPage = page;
+    const totalPages = Math.ceil(total / limit);
+
+    return { menus, total, currentPage, totalPages };
   }
 
   async findOne(id: number): Promise<Menu> {
@@ -46,5 +73,81 @@ export class MenusService {
     if (!menu) throw new NotFoundException('Menu not found.');
 
     await this.menuRepository.remove(menu);
+  }
+
+  async importExcel(file: Express.Multer.File): Promise<Menu[]> {
+    const workbook = XLSX.read(file.buffer, { type: 'buffer' });
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+
+    const expectedHeaders = ['item', 'price', 'description'];
+
+    const jsonData = XLSX.utils.sheet_to_json(worksheet, {
+      defval: '',
+    });
+
+    if (!jsonData.length) {
+      throw new HttpException(
+        'No data found in the worksheet',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+
+    if (
+      !expectedHeaders.every((header) => jsonData[0].hasOwnProperty(header))
+    ) {
+      throw new HttpException(
+        'Expected headers are missing in the Excel file',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+
+    for (const row of jsonData) {
+      const item = row['item'].trim();
+      const price = row['stock_quantity'];
+
+      this.validateField(item, 'Menu item cannot be empty or null.');
+
+      if (await this.doesMenuItemExist(item)) {
+        throw new HttpException(
+          `Menu with item '${item}' already exists.`,
+          HttpStatus.CONFLICT,
+        );
+      }
+
+      if (price !== null && price !== undefined && price !== '') {
+        const priceNumber = parseFloat(price);
+        if (isNaN(priceNumber)) {
+          throw new HttpException(
+            'Menu item price must be a valid number.',
+            HttpStatus.UNPROCESSABLE_ENTITY,
+          );
+        }
+      }
+
+      // Modify the row to use the Menu model
+      row['price'] = price ? price : 0;
+      row['item'] = item;
+      row['description'] = row['description'] ? row['description'] : null;
+    }
+
+    return await this.menuRepository.save(jsonData);
+  }
+
+  async getMenuCount(): Promise<number> {
+    return await this.menuRepository.count();
+  }
+
+  async doesMenuItemExist(item): Promise<boolean> {
+    const product = await this.menuRepository.findOne({
+      where: { item },
+    });
+
+    return !!product;
+  }
+
+  validateField(value, message) {
+    if (!value) {
+      throw new HttpException(message, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
   }
 }
