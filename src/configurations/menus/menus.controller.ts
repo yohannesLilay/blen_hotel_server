@@ -72,7 +72,7 @@ export class MenusController {
   }
 
   @Post('import')
-  @Permissions('import_product')
+  @Permissions('import_menu')
   @UseInterceptors(FileInterceptor('file'))
   async importExcel(
     @UploadedFile(

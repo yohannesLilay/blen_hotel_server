@@ -236,6 +236,10 @@ export const seedPermissions = [
     name: 'Can delete menu',
   },
   {
+    code_name: 'import_menu',
+    name: 'Can import menu',
+  },
+  {
     code_name: 'add_staff',
     name: 'Can add staff',
   },
