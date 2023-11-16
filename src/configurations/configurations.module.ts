@@ -4,6 +4,7 @@ import { CompaniesModule } from './companies/companies.module';
 import { WorkFlowsModule } from './work-flows/work-flows.module';
 import { FacilityTypesModule } from './facility-types/facility-types.module';
 import { MenusModule } from './menus/menus.module';
+import { StaffsModule } from './staffs/staffs.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { MenusModule } from './menus/menus.module';
     WorkFlowsModule,
     FacilityTypesModule,
     MenusModule,
+    StaffsModule,
   ],
   providers: [],
   exports: [
@@ -20,6 +22,7 @@ import { MenusModule } from './menus/menus.module';
     WorkFlowsModule,
     FacilityTypesModule,
     MenusModule,
+    StaffsModule,
   ],
 })
 export class ConfigurationsModule {}
