@@ -1,6 +1,6 @@
 import {
-  IsDecimal,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
   Validate,
@@ -14,7 +14,7 @@ export class CreateMenuDto {
   item: string;
 
   @IsNotEmpty()
-  @IsDecimal()
+  @IsNumber()
   price: number;
 
   @IsOptional()
