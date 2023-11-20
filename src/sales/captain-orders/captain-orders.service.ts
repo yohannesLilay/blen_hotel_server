@@ -4,13 +4,14 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, ILike, QueryRunner, Repository } from 'typeorm';
+import { DataSource, ILike, In, QueryRunner, Raw, Repository } from 'typeorm';
 
 /** DTOs */
 import { CreateCaptainOrderDto } from './dto/create-captain-order.dto';
 import { UpdateCaptainOrderDto } from './dto/update-captain-order.dto';
 import { CreateCaptainOrderItemDto } from './dto/create-captain-order-item.dto';
 import { UpdateCaptainOrderItemDto } from './dto/update-captain-order-item.dto';
+import { SearchCaptainOrderDto } from './dto/search-captain-order.dto';
 
 /** Entities */
 import { CaptainOrder } from './entities/captain-order.entity';
@@ -22,14 +23,15 @@ import { UsersService } from 'src/security/users/users.service';
 import { StaffsService } from 'src/configurations/staffs/staffs.service';
 import { FacilityTypesService } from 'src/configurations/facility-types/facility-types.service';
 import { NotificationsService } from 'src/notifications/notifications.service';
+import { RolesService } from 'src/security/roles/roles.service';
 
 /** Constants */
 import { CaptainOrderStatus } from './constants/captain-order-status.enum';
+import { StaffType } from 'src/configurations/staffs/constants/staff-type.enum';
 import { NotificationType } from 'src/notifications/constants/notification-type.enum';
 
 /** Gateways */
 import { WebSocketsGateway } from 'src/web-sockets/web-sockets.gateway';
-import { StaffType } from 'src/configurations/staffs/constants/staff-type.enum';
 
 @Injectable()
 export class CaptainOrdersService {
@@ -40,6 +42,7 @@ export class CaptainOrdersService {
     private readonly captainOrderItemRepository: Repository<CaptainOrderItem>,
     private readonly menusService: MenusService,
     private readonly usersService: UsersService,
+    private readonly rolesService: RolesService,
     private readonly staffsService: StaffsService,
     private readonly facilityTypesService: FacilityTypesService,
     private readonly notificationsService: NotificationsService,
@@ -80,7 +83,7 @@ export class CaptainOrdersService {
     const captainOrder = this.captainOrderRepository.create({
       captain_order_number: createCaptainOrderDto.captain_order_number,
       captain_order_date: createCaptainOrderDto.captain_order_date,
-      status: CaptainOrderStatus.CREATED,
+      status: CaptainOrderStatus.PENDING,
     });
 
     captainOrder.created_by = await this.usersService.findOne(userId);
@@ -114,7 +117,7 @@ export class CaptainOrdersService {
     const captainOrder = await this.findOne(id);
     if (!captainOrder) throw new NotFoundException('Captain Order not found.');
 
-    if (captainOrder.status !== CaptainOrderStatus.CREATED)
+    if (captainOrder.status !== CaptainOrderStatus.PENDING)
       throw new BadRequestException(
         'It is not allowed to add a new captain order item.',
       );
@@ -135,7 +138,7 @@ export class CaptainOrdersService {
   async findAll(
     page: number,
     limit: number,
-    search?: string,
+    search?: SearchCaptainOrderDto,
   ): Promise<{
     captainOrders: CaptainOrder[];
     total: number;
@@ -143,6 +146,11 @@ export class CaptainOrdersService {
     totalPages: number;
   }> {
     const skip = (page - 1) * limit;
+
+    let searchParams: Record<string, any> = {};
+    if (search) {
+      searchParams = this.parseSearchString(search.toString());
+    }
 
     const [captainOrders, total] =
       await this.captainOrderRepository.findAndCount({
@@ -152,8 +160,45 @@ export class CaptainOrdersService {
           'created_by',
           'waiter',
           'facility_type',
+          'cash_receipt',
         ],
-        where: search ? [{ captain_order_number: ILike(`%${search}%`) }] : {},
+        where: search
+          ? {
+              ...(searchParams?.captain_order_number !== null &&
+                searchParams?.captain_order_number !== undefined && {
+                  captain_order_number: ILike(
+                    `%${searchParams?.captain_order_number}%`,
+                  ),
+                }),
+              ...(searchParams?.waiter !== null &&
+                searchParams?.waiter !== undefined && {
+                  waiter: { id: searchParams?.waiter },
+                }),
+              ...(searchParams?.casher !== null &&
+                searchParams?.casher !== undefined && {
+                  created_by: { id: searchParams?.casher },
+                }),
+              ...(searchParams?.facility_type !== null &&
+                searchParams?.facility_type !== undefined && {
+                  facility_type: { id: searchParams?.facility_type },
+                }),
+              ...(searchParams?.captain_order_status !== null &&
+                searchParams?.captain_order_status !== undefined && {
+                  status: searchParams?.captain_order_status,
+                }),
+              ...(searchParams?.captain_order_date !== null &&
+                searchParams?.captain_order_date !== undefined && {
+                  captain_order_date: Raw(
+                    (alias) =>
+                      `DATE(${alias}) = '${
+                        new Date(searchParams?.captain_order_date)
+                          .toISOString()
+                          .split('T')[0]
+                      }'`,
+                  ),
+                }),
+            }
+          : {},
         order: { created_at: 'DESC' },
         skip,
         take: limit,
@@ -165,16 +210,32 @@ export class CaptainOrdersService {
     return { captainOrders, total, currentPage, totalPages };
   }
 
+  async findPrinted(waiterId?: number | null): Promise<CaptainOrder[]> {
+    return await this.captainOrderRepository.find({
+      relations: ['items', 'items.menu', 'waiter'],
+      where: { status: CaptainOrderStatus.PRINTED, waiter: { id: waiterId } },
+      order: { created_at: 'DESC' },
+    });
+  }
+
+  async findByIds(ids: number[]): Promise<CaptainOrder[]> {
+    return await this.captainOrderRepository.findBy({ id: In(ids) });
+  }
+
   async template() {
     const menus = await this.menusService.findAllList();
     const waiterStaffs = await this.staffsService.findByStaffType(
       StaffType.WAITER,
     );
     const facilityTypes = await this.facilityTypesService.findAll();
+    const casherRole = await this.rolesService.findByName('CASHER');
+    const cashers = await this.usersService.findByRoles([casherRole.id]);
     return {
       menuOptions: menus,
       waiterStaffOptions: waiterStaffs,
       facilityTypeOptions: facilityTypes,
+      casherEmployeeOptions: cashers,
+      captainOrderStatusOptions: CaptainOrderStatus,
     };
   }
 
@@ -187,6 +248,7 @@ export class CaptainOrdersService {
         'created_by',
         'waiter',
         'facility_type',
+        'cash_receipt',
       ],
     });
   }
@@ -252,6 +314,17 @@ export class CaptainOrdersService {
     return await this.captainOrderItemRepository.save(captainOrderItem);
   }
 
+  async markAsPaid(captainOrderId: number): Promise<CaptainOrder> {
+    const captainOrder = await this.findOne(captainOrderId);
+    if (!captainOrder) {
+      throw new NotFoundException('Captain Order not found.');
+    }
+
+    captainOrder.status = CaptainOrderStatus.PAID;
+
+    return await this.captainOrderRepository.save(captainOrder);
+  }
+
   async print(id: number) {
     const captainOrder = await this.findOne(id);
     if (!captainOrder) throw new NotFoundException('Captain Order not found');
@@ -306,9 +379,9 @@ export class CaptainOrdersService {
     captainOrder: CaptainOrder,
     userId: number,
   ) {
-    if (captainOrder.status != CaptainOrderStatus.CREATED) {
+    if (captainOrder.status != CaptainOrderStatus.PENDING) {
       throw new BadRequestException(
-        'Store requisition status does not allow updates.',
+        'Captain Order status does not allow updates.',
       );
     }
 
@@ -323,7 +396,7 @@ export class CaptainOrdersService {
     captainOrder: CaptainOrder,
     userId: number,
   ) {
-    if (captainOrder.status != CaptainOrderStatus.CREATED) {
+    if (captainOrder.status != CaptainOrderStatus.PENDING) {
       throw new BadRequestException(
         'This captain orders item can not be deleted.',
       );
@@ -347,7 +420,7 @@ export class CaptainOrdersService {
   }
 
   private async notifyCaptainOrderRemoval(captainOrder: CaptainOrder) {
-    const notificationMessage = `Purchase captainOrder (${captainOrder.captain_order_number}) has been deleted.`;
+    const notificationMessage = `Captain Order (${captainOrder.captain_order_number}) has been deleted.`;
     await this.notifyAdminUser(notificationMessage);
   }
 
@@ -381,5 +454,38 @@ export class CaptainOrdersService {
     this.wsGateway.server
       .to(String(recipient))
       .emit('notification', notification);
+  }
+
+  private parseSearchString(searchString: string): Record<string, any> {
+    const searchParams: Record<string, any> = {};
+    searchString.split('&').forEach((param) => {
+      const [key, rawValue] = param.split('=');
+      let value: string | number | Date | null = rawValue;
+
+      if (rawValue === 'null') {
+        value = null;
+      } else {
+        switch (key) {
+          case 'captain_order_date':
+            const dateValue = new Date(rawValue);
+            if (!isNaN(dateValue.getTime())) {
+              value = dateValue;
+            }
+            break;
+          case 'waiter':
+          case 'casher':
+          case 'facility_type':
+            const numericValue = parseInt(rawValue);
+            if (!isNaN(numericValue)) {
+              value = numericValue;
+            }
+            break;
+        }
+      }
+
+      searchParams[key] = value;
+    });
+
+    return searchParams;
   }
 }
