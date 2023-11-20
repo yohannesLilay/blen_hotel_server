@@ -275,4 +275,24 @@ export const seedPermissions = [
     code_name: 'print_captain_order',
     name: 'Can print captain order',
   },
+  {
+    code_name: 'add_cash_receipt',
+    name: 'Can add cash receipt',
+  },
+  {
+    code_name: 'change_cash_receipt',
+    name: 'Can change cash receipt',
+  },
+  {
+    code_name: 'view_cash_receipt',
+    name: 'Can view cash receipt',
+  },
+  {
+    code_name: 'delete_cash_receipt',
+    name: 'Can delete cash receipt',
+  },
+  {
+    code_name: 'print_cash_receipt',
+    name: 'Can print cash receipt',
+  },
 ];
