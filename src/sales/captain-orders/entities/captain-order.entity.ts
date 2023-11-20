@@ -12,6 +12,7 @@ import {
 } from 'typeorm';
 import { CaptainOrderStatus } from '../constants/captain-order-status.enum';
 import { CaptainOrderItem } from './captain-order-item.entity';
+import { CashReceipt } from 'src/sales/cash-receipts/entities/cash-receipt.entity';
 
 @Entity()
 export class CaptainOrder {
@@ -38,10 +39,15 @@ export class CaptainOrder {
   })
   items: CaptainOrderItem[];
 
+  @ManyToOne(() => CashReceipt, (cashReceipt) => cashReceipt.captain_orders, {
+    nullable: true,
+  })
+  cash_receipt: CashReceipt;
+
   @Column({
     type: 'enum',
     enum: CaptainOrderStatus,
-    default: CaptainOrderStatus.CREATED,
+    default: CaptainOrderStatus.PENDING,
   })
   status: CaptainOrderStatus;
 
