@@ -1,5 +1,5 @@
 export enum CaptainOrderStatus {
-  CREATED = 'Created',
-  PRINTED = 'Printed',
-  RECONCILIATED = 'Reconciliated',
+  PENDING = 'PENDING',
+  PRINTED = 'PRINTED',
+  PAID = 'PAID',
 }
