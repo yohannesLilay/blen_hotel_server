@@ -16,6 +16,7 @@ import { CreateCaptainOrderDto } from './dto/create-captain-order.dto';
 import { UpdateCaptainOrderDto } from './dto/update-captain-order.dto';
 import { CreateCaptainOrderItemDto } from './dto/create-captain-order-item.dto';
 import { UpdateCaptainOrderItemDto } from './dto/update-captain-order-item.dto';
+import { SearchCaptainOrderDto } from './dto/search-captain-order.dto';
 
 /** Guards and Decorators */
 import { AccessTokenGuard } from 'src/security/auth/guards/access-token.guard';
@@ -26,7 +27,7 @@ import { User } from 'src/security/auth/decorators/user.decorator';
 @UseGuards(AccessTokenGuard, PermissionsGuard)
 @Controller('captain-orders')
 export class CaptainOrdersController {
-  constructor(private readonly captainOrderService: CaptainOrdersService) {}
+  constructor(private readonly captainOrdersService: CaptainOrdersService) {}
 
   @Post()
   @Permissions('add_captain_order')
@@ -34,7 +35,10 @@ export class CaptainOrdersController {
     @Body() createCaptainOrderDto: CreateCaptainOrderDto,
     @User('id') userId: number,
   ) {
-    return await this.captainOrderService.create(createCaptainOrderDto, userId);
+    return await this.captainOrdersService.create(
+      createCaptainOrderDto,
+      userId,
+    );
   }
 
   @Post(':id')
@@ -43,7 +47,7 @@ export class CaptainOrdersController {
     @Param('id', ParseIntPipe) id: number,
     @Body() createCaptainOrderItemDto: CreateCaptainOrderItemDto,
   ) {
-    return await this.captainOrderService.createCaptainOrderItem(
+    return await this.captainOrdersService.createCaptainOrderItem(
       id,
       createCaptainOrderItemDto,
     );
@@ -54,9 +58,9 @@ export class CaptainOrdersController {
   async findAll(
     @Query('page', ParseIntPipe) page = 1,
     @Query('limit', ParseIntPipe) limit = 10,
-    @Query('search') search: string | undefined,
+    @Query('search') search: SearchCaptainOrderDto | undefined,
   ) {
-    return await this.captainOrderService.findAll(
+    return await this.captainOrdersService.findAll(
       Math.max(page, 1),
       limit,
       search,
@@ -66,13 +70,13 @@ export class CaptainOrdersController {
   @Get('template')
   @Permissions('view_captain_order')
   async template() {
-    return await this.captainOrderService.template();
+    return await this.captainOrdersService.template();
   }
 
   @Get(':id')
   @Permissions('view_captain_order')
   async findOne(@Param('id', ParseIntPipe) id: number) {
-    return await this.captainOrderService.findOne(+id);
+    return await this.captainOrdersService.findOne(+id);
   }
 
   @Patch(':id')
@@ -85,7 +89,7 @@ export class CaptainOrdersController {
     if (id != updateCaptainOrderDto.id)
       throw new BadRequestException('ID mismatch between URL and request body');
 
-    return await this.captainOrderService.updateCaptainOrder(
+    return await this.captainOrdersService.updateCaptainOrder(
       +id,
       updateCaptainOrderDto,
       userId,
@@ -100,7 +104,7 @@ export class CaptainOrdersController {
     @Body() updateCaptainOrderItemDto: UpdateCaptainOrderItemDto,
     @User('id') userId: number,
   ) {
-    return await this.captainOrderService.updateCaptainOrderItem(
+    return await this.captainOrdersService.updateCaptainOrderItem(
       +id,
       +item_id,
       updateCaptainOrderItemDto,
@@ -111,7 +115,7 @@ export class CaptainOrdersController {
   @Patch(':id/print')
   @Permissions('print_captain_order')
   async printCaptainOrder(@Param('id', ParseIntPipe) id: number) {
-    return await this.captainOrderService.print(+id);
+    return await this.captainOrdersService.print(+id);
   }
 
   @Delete(':id')
@@ -120,7 +124,7 @@ export class CaptainOrdersController {
     @Param('id', ParseIntPipe) id: number,
     @User('id') userId: number,
   ) {
-    return await this.captainOrderService.remove(+id, userId);
+    return await this.captainOrdersService.remove(+id, userId);
   }
 
   @Delete(':id/items/:item_id')
@@ -130,7 +134,7 @@ export class CaptainOrdersController {
     @Param('item_id', ParseIntPipe) item_id: number,
     @User('id') userId: number,
   ) {
-    return await this.captainOrderService.removeCaptainOrderItem(
+    return await this.captainOrdersService.removeCaptainOrderItem(
       +id,
       +item_id,
       userId,

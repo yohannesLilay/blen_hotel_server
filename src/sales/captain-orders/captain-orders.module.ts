@@ -16,6 +16,7 @@ import { NotificationsModule } from 'src/notifications/notifications.module';
 import { MenusModule } from 'src/configurations/menus/menus.module';
 import { StaffsModule } from 'src/configurations/staffs/staffs.module';
 import { FacilityTypesModule } from 'src/configurations/facility-types/facility-types.module';
+import { RolesModule } from 'src/security/roles/roles.module';
 
 /** Custom Validators */
 import { UniqueCaptainOrderNumberValidator } from './validators/unique-captain-order-number.validator';
@@ -33,6 +34,7 @@ import { WebSocketsGateway } from 'src/web-sockets/web-sockets.gateway';
     MenusModule,
     StaffsModule,
     FacilityTypesModule,
+    RolesModule,
   ],
   controllers: [CaptainOrdersController],
   providers: [
