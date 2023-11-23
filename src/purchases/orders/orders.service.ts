@@ -73,8 +73,9 @@ export class OrdersService {
     userId: number,
     queryRunner: QueryRunner,
   ): Promise<Order> {
+    const orderNumber = await this.generateUniqueOrderNumber();
     const order = this.orderRepository.create({
-      order_number: createOrderDto.order_number,
+      order_number: orderNumber,
       order_date: createOrderDto.order_date,
       status: OrderStatus.REQUESTED,
     });
@@ -204,7 +205,6 @@ export class OrdersService {
 
     this.checkOrderForUpdate(order, userId);
 
-    order.order_number = updateOrderDto.order_number;
     order.order_date = updateOrderDto.order_date;
 
     await this.notifyOrderModification(order);
@@ -429,5 +429,20 @@ export class OrdersService {
         status: OrderStatus.REQUESTED,
       },
     });
+  }
+
+  private async generateUniqueOrderNumber(): Promise<string> {
+    const latestOrder = await this.orderRepository.findOne({
+      order: { created_at: 'DESC' },
+    });
+
+    const startingNumber = latestOrder
+      ? parseInt(latestOrder.order_number.slice(3)) + 1
+      : 1;
+
+    const sequentialNumber = startingNumber.toString().padStart(5, '0');
+    const orderNumber = `ON-${sequentialNumber}`;
+
+    return orderNumber;
   }
 }
