@@ -77,9 +77,10 @@ export class StoreRequisitionsService {
     userId: number,
     queryRunner: QueryRunner,
   ): Promise<StoreRequisition> {
+    const storeRequisitionNumber =
+      await this.generateUniqueStoreRequisitionNumber();
     const storeRequisition = this.storeRequisitionRepository.create({
-      store_requisition_number:
-        createStoreRequisitionDto.store_requisition_number,
+      store_requisition_number: storeRequisitionNumber,
       store_requisition_date: createStoreRequisitionDto.store_requisition_date,
       status: StoreRequisitionStatus.REQUESTED,
     });
@@ -208,8 +209,6 @@ export class StoreRequisitionsService {
 
     this.checkStoreRequisitionForUpdate(storeRequisition, userId);
 
-    storeRequisition.store_requisition_number =
-      updateStoreRequisitionDto.store_requisition_number;
     storeRequisition.store_requisition_date =
       updateStoreRequisitionDto.store_requisition_date;
 
@@ -478,5 +477,21 @@ export class StoreRequisitionsService {
         status: StoreRequisitionStatus.REQUESTED,
       },
     });
+  }
+
+  private async generateUniqueStoreRequisitionNumber(): Promise<string> {
+    const latestStoreRequisition =
+      await this.storeRequisitionRepository.findOne({
+        order: { created_at: 'DESC' },
+      });
+
+    const startingNumber = latestStoreRequisition
+      ? parseInt(latestStoreRequisition.store_requisition_number.slice(2)) + 1
+      : 1;
+
+    const sequentialNumber = startingNumber.toString().padStart(5, '0');
+    const storeRequisitionNumber = `SR${sequentialNumber}`;
+
+    return storeRequisitionNumber;
   }
 }

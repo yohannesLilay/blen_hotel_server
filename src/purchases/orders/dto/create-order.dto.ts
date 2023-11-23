@@ -10,7 +10,6 @@ import {
   Validate,
   ValidateNested,
 } from 'class-validator';
-import { UniqueOrderNumberValidator } from '../validators/unique-order-number.validator';
 import { ValidProductValidator } from '../validators/valid-product.validator';
 import { Type } from 'class-transformer';
 
@@ -34,11 +33,6 @@ class OrderItemDto {
 }
 
 export class CreateOrderDto {
-  @IsString()
-  @IsNotEmpty()
-  @Validate(UniqueOrderNumberValidator)
-  order_number: string;
-
   @IsDateString()
   @IsNotEmpty()
   order_date: Date;

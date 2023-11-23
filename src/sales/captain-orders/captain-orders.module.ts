@@ -19,7 +19,6 @@ import { FacilityTypesModule } from 'src/configurations/facility-types/facility-
 import { RolesModule } from 'src/security/roles/roles.module';
 
 /** Custom Validators */
-import { UniqueCaptainOrderNumberValidator } from './validators/unique-captain-order-number.validator';
 import { ValidMenuValidator } from './validators/valid-menu.validator';
 import { ValidFacilityTypeValidator } from './validators/valid-facility-type.validator';
 import { ValidStaffValidator } from './validators/valid-staff.validator';
@@ -39,7 +38,6 @@ import { WebSocketsGateway } from 'src/web-sockets/web-sockets.gateway';
   controllers: [CaptainOrdersController],
   providers: [
     CaptainOrdersService,
-    UniqueCaptainOrderNumberValidator,
     ValidMenuValidator,
     ValidFacilityTypeValidator,
     ValidStaffValidator,

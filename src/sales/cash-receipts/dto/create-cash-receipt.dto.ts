@@ -7,14 +7,12 @@ import {
   IsInt,
   IsNotEmpty,
   IsNumber,
-  IsString,
   Min,
   Validate,
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ValidMenuValidator } from '../validators/valid-menu.validator';
-import { UniqueCashReceiptNumberValidator } from '../validators/unique-cash-receipt-number.validator';
 import { ValidStaffValidator } from '../validators/valid-staff.validator';
 import { ValidCaptainOrdersValidator } from '../validators/valid-captain-orders.validator';
 
@@ -34,11 +32,6 @@ class CashReceiptItemDto {
 }
 
 export class CreateCashReceiptDto {
-  @IsString()
-  @IsNotEmpty()
-  @Validate(UniqueCashReceiptNumberValidator)
-  cash_receipt_number: string;
-
   @IsDateString()
   @IsNotEmpty()
   cash_receipt_date: Date;

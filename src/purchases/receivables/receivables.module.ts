@@ -19,7 +19,6 @@ import { WorkFlowsModule } from 'src/configurations/work-flows/work-flows.module
 import { NotificationsModule } from 'src/notifications/notifications.module';
 
 /** Custom Validator */
-import { UniqueReceivableNumberValidator } from './validators/unique-receivable-number.validator';
 import { ValidOrderValidator } from './validators/valid-order.validator';
 import { ValidProductValidator } from './validators/valid-product.validator';
 import { ValidSupplierValidator } from './validators/valid-supplier.validator';
@@ -39,7 +38,6 @@ import { WebSocketsGateway } from 'src/web-sockets/web-sockets.gateway';
   controllers: [ReceivablesController],
   providers: [
     ReceivablesService,
-    UniqueReceivableNumberValidator,
     ValidOrderValidator,
     ValidProductValidator,
     ValidSupplierValidator,

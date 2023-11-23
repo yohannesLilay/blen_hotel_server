@@ -80,16 +80,20 @@ export class CaptainOrdersService {
     userId: number,
     queryRunner: QueryRunner,
   ): Promise<CaptainOrder> {
+    const waiter = await this.staffsService.findOne(
+      createCaptainOrderDto.waiter,
+    );
+    const captainOrderNumber = await this.generateUniqueCaptainOrderNumber(
+      waiter.name,
+    );
     const captainOrder = this.captainOrderRepository.create({
-      captain_order_number: createCaptainOrderDto.captain_order_number,
+      captain_order_number: captainOrderNumber,
       captain_order_date: createCaptainOrderDto.captain_order_date,
       status: CaptainOrderStatus.PENDING,
     });
 
     captainOrder.created_by = await this.usersService.findOne(userId);
-    captainOrder.waiter = await this.staffsService.findOne(
-      createCaptainOrderDto.waiter,
-    );
+    captainOrder.waiter = waiter;
     captainOrder.facility_type = await this.facilityTypesService.findOne(
       createCaptainOrderDto.facility_type_id,
     );
@@ -277,8 +281,6 @@ export class CaptainOrdersService {
 
     this.checkCaptainOrderForUpdate(captainOrder, userId);
 
-    captainOrder.captain_order_number =
-      updateCaptainOrderDto.captain_order_number;
     captainOrder.captain_order_date = updateCaptainOrderDto.captain_order_date;
     captainOrder.waiter = await this.staffsService.findOne(
       updateCaptainOrderDto.waiter,
@@ -487,5 +489,23 @@ export class CaptainOrdersService {
     });
 
     return searchParams;
+  }
+
+  private async generateUniqueCaptainOrderNumber(
+    waiterStaffName: string,
+  ): Promise<string> {
+    const latestCaptainOrder = await this.captainOrderRepository.findOne({
+      order: { created_at: 'DESC' },
+    });
+
+    const prefix = waiterStaffName.slice(0, 3).toUpperCase().padEnd(3, 'X');
+    const startingNumber = latestCaptainOrder
+      ? parseInt(latestCaptainOrder.captain_order_number.slice(4)) + 1
+      : 1;
+
+    const sequentialNumber = startingNumber.toString().padStart(5, '0');
+    const captainOrderNumber = `${prefix}-${sequentialNumber}`;
+
+    return captainOrderNumber;
   }
 }

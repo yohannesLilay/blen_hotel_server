@@ -17,7 +17,6 @@ import { NotificationsModule } from 'src/notifications/notifications.module';
 import { WorkFlowsModule } from 'src/configurations/work-flows/work-flows.module';
 
 /** Custom Validators */
-import { UniqueOrderNumberValidator } from './validators/unique-order-number.validator';
 import { ValidProductValidator } from './validators/valid-product.validator';
 
 /** Gateways */
@@ -31,12 +30,7 @@ import { WebSocketsGateway } from 'src/web-sockets/web-sockets.gateway';
     WorkFlowsModule,
   ],
   controllers: [OrdersController],
-  providers: [
-    OrdersService,
-    UniqueOrderNumberValidator,
-    ValidProductValidator,
-    WebSocketsGateway,
-  ],
+  providers: [OrdersService, ValidProductValidator, WebSocketsGateway],
   exports: [OrdersService],
 })
 export class OrdersModule {}
