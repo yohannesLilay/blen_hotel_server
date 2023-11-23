@@ -76,8 +76,9 @@ export class CashReceiptsService {
     userId: number,
     queryRunner: QueryRunner,
   ): Promise<CashReceipt> {
+    const cashReceiptNumber = await this.generateUniqueCashReceiptNumber();
     const cashReceipt = this.cashReceiptRepository.create({
-      cash_receipt_number: createCashReceiptDto.cash_receipt_number,
+      cash_receipt_number: cashReceiptNumber,
       cash_receipt_date: createCashReceiptDto.cash_receipt_date,
     });
 
@@ -322,5 +323,20 @@ export class CashReceiptsService {
     });
 
     return searchParams;
+  }
+
+  private async generateUniqueCashReceiptNumber(): Promise<string> {
+    const latestCashReceipt = await this.cashReceiptRepository.findOne({
+      order: { created_at: 'DESC' },
+    });
+
+    const startingNumber = latestCashReceipt
+      ? parseInt(latestCashReceipt.cash_receipt_number.slice(3)) + 1
+      : 1;
+
+    const sequentialNumber = startingNumber.toString().padStart(5, '0');
+    const cashReceiptNumber = `CI-${sequentialNumber}`;
+
+    return cashReceiptNumber;
   }
 }

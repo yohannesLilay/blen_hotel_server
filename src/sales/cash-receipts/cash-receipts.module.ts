@@ -19,7 +19,6 @@ import { StaffsModule } from 'src/configurations/staffs/staffs.module';
 import { RolesModule } from 'src/security/roles/roles.module';
 
 /** Custom Validators */
-import { UniqueCashReceiptNumberValidator } from './validators/unique-cash-receipt-number.validator';
 import { ValidCaptainOrdersValidator } from './validators/valid-captain-orders.validator';
 import { ValidStaffValidator } from './validators/valid-staff.validator';
 import { ValidMenuValidator } from './validators/valid-menu.validator';
@@ -39,7 +38,6 @@ import { WebSocketsGateway } from 'src/web-sockets/web-sockets.gateway';
   controllers: [CashReceiptsController],
   providers: [
     CashReceiptsService,
-    UniqueCashReceiptNumberValidator,
     ValidCaptainOrdersValidator,
     ValidStaffValidator,
     ValidMenuValidator,
