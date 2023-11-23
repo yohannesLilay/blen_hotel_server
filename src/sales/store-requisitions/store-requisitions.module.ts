@@ -17,7 +17,6 @@ import { NotificationsModule } from 'src/notifications/notifications.module';
 import { WorkFlowsModule } from 'src/configurations/work-flows/work-flows.module';
 
 /** Custom Validators */
-import { UniqueStoreRequisitionNumberValidator } from './validators/unique-store-requisition-number.validator';
 import { ValidProductValidator } from './validators/valid-product.validator';
 
 /** Gateways */
@@ -33,7 +32,6 @@ import { WebSocketsGateway } from 'src/web-sockets/web-sockets.gateway';
   controllers: [StoreRequisitionsController],
   providers: [
     StoreRequisitionsService,
-    UniqueStoreRequisitionNumberValidator,
     ValidProductValidator,
     WebSocketsGateway,
   ],

@@ -12,7 +12,6 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { ValidProductValidator } from '../validators/valid-product.validator';
-import { UniqueStoreRequisitionNumberValidator } from '../validators/unique-store-requisition-number.validator';
 
 class StoreRequisitionItemDto {
   @IsNumber()
@@ -30,11 +29,6 @@ class StoreRequisitionItemDto {
 }
 
 export class CreateStoreRequisitionDto {
-  @IsString()
-  @IsNotEmpty()
-  @Validate(UniqueStoreRequisitionNumberValidator)
-  store_requisition_number: string;
-
   @IsDateString()
   @IsNotEmpty()
   store_requisition_date: Date;
