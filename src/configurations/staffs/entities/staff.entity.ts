@@ -21,6 +21,9 @@ export class Staff {
   @Column({ type: 'enum', enum: StaffType })
   staff_type: StaffType;
 
+  @Column({ default: true })
+  status: boolean;
+
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
 
