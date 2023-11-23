@@ -33,6 +33,9 @@ export class StoreRequisition {
   @ManyToOne(() => User, { nullable: true })
   approved_by: User;
 
+  @ManyToOne(() => User, { nullable: true })
+  released_by: User;
+
   @Column({
     type: 'enum',
     enum: StoreRequisitionStatus,
