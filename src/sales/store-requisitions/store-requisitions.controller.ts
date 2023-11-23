@@ -119,7 +119,24 @@ export class StoreRequisitionsController {
     @Param('id', ParseIntPipe) id: number,
     @User('id') userId: number,
   ) {
-    return await this.storeRequisitionsService.approve(+id, +userId);
+    return await this.storeRequisitionsService.approveOrRelease(
+      +id,
+      +userId,
+      true,
+    );
+  }
+
+  @Patch(':id/release')
+  @Permissions('approve_store_requisition')
+  async releaseStoreRequisition(
+    @Param('id', ParseIntPipe) id: number,
+    @User('id') userId: number,
+  ) {
+    return await this.storeRequisitionsService.approveOrRelease(
+      +id,
+      +userId,
+      false,
+    );
   }
 
   @Delete(':id')
