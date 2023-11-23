@@ -12,7 +12,6 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { ValidProductValidator } from '../validators/valid-product.validator';
-import { UniqueReceivableNumberValidator } from '../validators/unique-receivable-number.validator';
 import { ValidOrderValidator } from '../validators/valid-order.validator';
 import { ValidSupplierValidator } from '../validators/valid-supplier.validator';
 
@@ -36,11 +35,6 @@ class ReceivableItemDto {
 }
 
 export class CreateReceivableDto {
-  @IsString()
-  @IsNotEmpty()
-  @Validate(UniqueReceivableNumberValidator)
-  receivable_number: string;
-
   @IsDateString()
   @IsNotEmpty()
   receivable_date: Date;

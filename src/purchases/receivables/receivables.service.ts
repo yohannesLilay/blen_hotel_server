@@ -83,8 +83,9 @@ export class ReceivablesService {
     userId: number,
     queryRunner: QueryRunner,
   ): Promise<Receivable> {
+    const receivableNumber = await this.generateUniqueReceivableNumber();
     const receivable = this.receivableRepository.create({
-      receivable_number: createReceivableDto.receivable_number,
+      receivable_number: receivableNumber,
       receivable_date: createReceivableDto.receivable_date,
       status: ReceivableStatus.REQUESTED,
     });
@@ -222,7 +223,6 @@ export class ReceivablesService {
 
     this.checkReceivableForUpdate(receivable, userId);
 
-    receivable.receivable_number = updateReceivableDto.receivable_number;
     receivable.receivable_date = updateReceivableDto.receivable_date;
     receivable.supplier =
       updateReceivableDto.supplier_id !== null
@@ -455,5 +455,20 @@ export class ReceivablesService {
         status: ReceivableStatus.REQUESTED,
       },
     });
+  }
+
+  private async generateUniqueReceivableNumber(): Promise<string> {
+    const latestReceivable = await this.receivableRepository.findOne({
+      order: { created_at: 'DESC' },
+    });
+
+    const startingNumber = latestReceivable
+      ? parseInt(latestReceivable.receivable_number.slice(3)) + 1
+      : 1;
+
+    const sequentialNumber = startingNumber.toString().padStart(5, '0');
+    const receivableNumber = `RN-${sequentialNumber}`;
+
+    return receivableNumber;
   }
 }
