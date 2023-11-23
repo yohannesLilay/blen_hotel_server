@@ -60,6 +60,12 @@ export class StaffsController {
     return await this.staffsService.update(+id, updateStaffDto);
   }
 
+  @Patch(':id/toggle-status')
+  @Permissions('change_user')
+  async toggleStatus(@Param('id', ParseIntPipe) id: number) {
+    return await this.staffsService.toggleStatus(+id);
+  }
+
   @Delete(':id')
   @Permissions('delete_staff')
   async remove(@Param('id', ParseIntPipe) id: number) {

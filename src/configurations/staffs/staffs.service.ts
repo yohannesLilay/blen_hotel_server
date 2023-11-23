@@ -28,9 +28,13 @@ export class StaffsService {
     return await this.staffRepository.find();
   }
 
+  async findAllActive(): Promise<Staff[]> {
+    return await this.staffRepository.find({ where: { status: true } });
+  }
+
   async findByStaffType(staffType: StaffType): Promise<Staff[]> {
     return await this.staffRepository.find({
-      where: { staff_type: staffType },
+      where: { staff_type: staffType, status: true },
     });
   }
 
@@ -51,6 +55,15 @@ export class StaffsService {
     if (!staff) throw new NotFoundException('Staff not found.');
 
     Object.assign(staff, updateStaffDto);
+    return await this.staffRepository.save(staff);
+  }
+
+  async toggleStatus(id: number): Promise<Staff> {
+    const staff = await this.findOne(id);
+    if (!staff) throw new NotFoundException('Staff not found.');
+
+    staff.status = !staff.status;
+
     return await this.staffRepository.save(staff);
   }
 
