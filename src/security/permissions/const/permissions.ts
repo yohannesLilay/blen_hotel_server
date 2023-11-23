@@ -256,6 +256,10 @@ export const seedPermissions = [
     name: 'Can approve store requisition',
   },
   {
+    code_name: 'release_store_requisition',
+    name: 'Can release store requisition',
+  },
+  {
     code_name: 'add_captain_order',
     name: 'Can add captain order',
   },

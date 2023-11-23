@@ -242,17 +242,26 @@ export class StoreRequisitionsService {
     return await this.storeRequisitionItemRepository.save(storeRequisitionItem);
   }
 
-  async approve(id: number, userId: number) {
+  async approveOrRelease(id: number, userId: number, isApproval: boolean) {
     const storeRequisition = await this.findOne(id);
     if (!storeRequisition)
       throw new NotFoundException('Store Requisition not found');
 
-    storeRequisition.approved_by = await this.usersService.findOne(userId);
-    storeRequisition.status = StoreRequisitionStatus.APPROVED;
+    const actor = isApproval ? 'approved' : 'released';
 
-    await this.updateProductsStockQuantity(storeRequisition.items);
+    storeRequisition[`${actor}_by`] = await this.usersService.findOne(userId);
+    storeRequisition.status = isApproval
+      ? StoreRequisitionStatus.APPROVED
+      : StoreRequisitionStatus.RELEASED;
 
-    await this.notifyStoreRequisitionAction(storeRequisition);
+    if (!isApproval) {
+      await this.updateProductsStockQuantity(storeRequisition.items);
+    }
+    await this.notifyStoreRequisitionAction(
+      storeRequisition,
+      actor,
+      isApproval,
+    );
 
     return await this.storeRequisitionRepository.save(storeRequisition);
   }
@@ -368,13 +377,26 @@ export class StoreRequisitionsService {
 
   private async notifyStoreRequisitionAction(
     storeRequisition: StoreRequisition,
+    actor: string,
+    isApproval: boolean,
   ) {
-    const notificationMessage = `store requisition ${storeRequisition.store_requisition_number} has been approved by ${storeRequisition.approved_by.name}.`;
+    const action = isApproval ? 'approved' : 'checked';
+
+    const notificationMessage = `store requisition ${
+      storeRequisition.store_requisition_number
+    } has been ${action} by ${storeRequisition[`${actor}_by`].name}.`;
     await Promise.all([
-      this.notifyUsers(notificationMessage, FlowStep.APPROVE),
+      this.notifyUsers(
+        notificationMessage,
+        isApproval ? FlowStep.APPROVE : FlowStep.RELEASE,
+      ),
       this.notifyAdminUser(notificationMessage),
       this.notifyRequester(
-        `Your store requisition (${storeRequisition.store_requisition_number}) has been successfully approved by ${storeRequisition.approved_by.name}`,
+        `Your store requisition (${
+          storeRequisition.store_requisition_number
+        }) has been successfully ${action} by ${
+          storeRequisition[`${actor}_by`].name
+        }`,
         storeRequisition.requested_by.id,
       ),
     ]);
