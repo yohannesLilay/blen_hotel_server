@@ -61,7 +61,7 @@ export class StaffsController {
   }
 
   @Patch(':id/toggle-status')
-  @Permissions('change_user')
+  @Permissions('change_staff')
   async toggleStatus(@Param('id', ParseIntPipe) id: number) {
     return await this.staffsService.toggleStatus(+id);
   }
