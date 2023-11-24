@@ -232,6 +232,22 @@ export const seedPermissions = [
     name: 'Can delete staff',
   },
   {
+    code_name: 'add_room',
+    name: 'Can add room',
+  },
+  {
+    code_name: 'change_room',
+    name: 'Can change room',
+  },
+  {
+    code_name: 'view_room',
+    name: 'Can view room',
+  },
+  {
+    code_name: 'delete_room',
+    name: 'Can delete room',
+  },
+  {
     code_name: 'delete_notification',
     name: 'Can delete notification',
   },
