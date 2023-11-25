@@ -105,6 +105,15 @@ export class BookRoomsService {
     return await this.bookRoomRepository.save(bookRoom);
   }
 
+  async freeRoom(id: number): Promise<BookRoom> {
+    const bookRoom = await this.findOne(id);
+    if (!bookRoom) throw new NotFoundException('Book Room not found.');
+
+    await this.roomsService.toggleAvailability(bookRoom.room.id);
+
+    return await this.bookRoomRepository.save(bookRoom);
+  }
+
   async remove(id: number): Promise<void> {
     const bookRoom = await this.findOne(id);
     if (!bookRoom) throw new NotFoundException('Book Room not found.');

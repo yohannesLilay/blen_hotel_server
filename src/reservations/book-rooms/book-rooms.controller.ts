@@ -72,6 +72,12 @@ export class BookRoomsController {
     return await this.bookRoomsService.update(+id, updateBookRoomDto);
   }
 
+  @Patch(':id/free-room')
+  @Permissions('change_book_room')
+  async freeRoom(@Param('id', ParseIntPipe) id: number) {
+    return await this.bookRoomsService.freeRoom(+id);
+  }
+
   @Delete(':id')
   @Permissions('delete_book_room')
   async remove(@Param('id', ParseIntPipe) id: number) {
