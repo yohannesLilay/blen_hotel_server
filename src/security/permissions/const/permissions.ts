@@ -315,4 +315,20 @@ export const seedPermissions = [
     code_name: 'print_cash_receipt',
     name: 'Can print cash receipt',
   },
+  {
+    code_name: 'add_book_room',
+    name: 'Can add book room',
+  },
+  {
+    code_name: 'change_book_room',
+    name: 'Can change book room',
+  },
+  {
+    code_name: 'view_book_room',
+    name: 'Can view book room',
+  },
+  {
+    code_name: 'delete_book_room',
+    name: 'Can delete book room',
+  },
 ];
