@@ -1,4 +1,11 @@
-import { IsEnum, IsInt, IsNotEmpty, IsString, Validate } from 'class-validator';
+import {
+  IsEnum,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Validate,
+} from 'class-validator';
 import { RoomType } from '../constants/room_type.enum';
 import { UniqueNameValidator } from '../validators/unique-name.validator';
 
@@ -15,4 +22,8 @@ export class CreateRoomDto {
   @IsNotEmpty()
   @IsEnum(RoomType)
   room_type: RoomType;
+
+  @IsOptional()
+  @IsString()
+  notes: string;
 }

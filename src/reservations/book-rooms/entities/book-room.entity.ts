@@ -1,34 +1,33 @@
+import { Room } from 'src/configurations/rooms/entities/room.entity';
+import { User } from 'src/security/users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { RoomType } from '../constants/room_type.enum';
 
 @Entity()
-export class Room {
+export class BookRoom {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'varchar', length: 10, unique: true })
-  name: string;
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  book_date: Date;
 
-  @Column({ type: 'int' })
-  price: number;
+  @ManyToOne(() => Room)
+  room: Room;
 
-  @Column({ type: 'enum', enum: RoomType })
-  room_type: RoomType;
+  @ManyToOne(() => User)
+  operator: User;
 
   @Column({ type: 'varchar', nullable: true })
   notes: string;
 
-  @Column({ default: true })
-  available: boolean;
-
-  @Column({ default: true })
-  status: boolean;
+  @Column({ type: 'boolean', default: true })
+  guest_in: boolean;
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
