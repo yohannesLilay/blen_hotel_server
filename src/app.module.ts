@@ -23,6 +23,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { ReportsModule } from './reports/reports.module';
 import { WebSocketsGateway } from './web-sockets/web-sockets.gateway';
 import { SalesModule } from './sales/sales.module';
+import { ReservationsModule } from './reservations/reservations.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { SalesModule } from './sales/sales.module';
     NotificationsModule,
     ReportsModule,
     SalesModule,
+    ReservationsModule,
   ],
   controllers: [],
   providers: [StartupService, SeedService, WebSocketsGateway],
