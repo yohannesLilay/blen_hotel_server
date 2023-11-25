@@ -30,9 +30,9 @@ export class RoomsService {
     return await this.roomRepository.find({ where: { status: true } });
   }
 
-  async findByRoomType(roomType: RoomType): Promise<Room[]> {
+  async findAvailableRoomByRoomType(roomType: RoomType): Promise<Room[]> {
     return await this.roomRepository.find({
-      where: { room_type: roomType, status: true },
+      where: { room_type: roomType, status: true, available: true },
     });
   }
 

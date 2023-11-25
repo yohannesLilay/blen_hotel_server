@@ -21,6 +21,9 @@ export class Room {
   @Column({ type: 'enum', enum: RoomType })
   room_type: RoomType;
 
+  @Column({ type: 'varchar', nullable: true })
+  notes: string;
+
   @Column({ default: true })
   available: boolean;
 
