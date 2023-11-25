@@ -109,6 +109,7 @@ export class BookRoomsService {
     const bookRoom = await this.findOne(id);
     if (!bookRoom) throw new NotFoundException('Book Room not found.');
 
+    bookRoom.guest_in = false;
     await this.roomsService.toggleAvailability(bookRoom.room.id);
 
     return await this.bookRoomRepository.save(bookRoom);

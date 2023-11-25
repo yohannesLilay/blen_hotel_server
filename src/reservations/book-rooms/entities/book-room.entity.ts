@@ -26,6 +26,9 @@ export class BookRoom {
   @Column({ type: 'varchar', nullable: true })
   notes: string;
 
+  @Column({ type: 'boolean', default: true })
+  guest_in: boolean;
+
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
 
