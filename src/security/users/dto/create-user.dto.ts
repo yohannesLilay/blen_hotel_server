@@ -3,7 +3,6 @@ import {
   IsNotEmpty,
   IsEnum,
   IsPhoneNumber,
-  Length,
   Matches,
   IsString,
   Validate,
@@ -12,6 +11,7 @@ import {
   ArrayUnique,
   IsInt,
   Min,
+  MinLength,
 } from 'class-validator';
 import { Gender } from '../constants/gender.enum';
 import { UniqueEmailValidator } from '../validators/unique-email.validator';
@@ -39,10 +39,10 @@ export class CreateUserDto {
   gender: Gender;
 
   @IsNotEmpty()
-  @Length(8, 100)
-  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/, {
-    message: 'Password too weak',
-  })
+  @MinLength(6, { message: 'Password must be at least 6 characters long' })
+  // @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/, {
+  //   message: 'Password too weak',
+  // })
   password: string;
 
   @IsNotEmpty({ message: 'Roles are required' })

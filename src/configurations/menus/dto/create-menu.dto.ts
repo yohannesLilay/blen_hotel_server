@@ -13,6 +13,10 @@ export class CreateMenuDto {
   @Validate(UniqueItemValidator)
   item: string;
 
+  @IsOptional()
+  @IsString()
+  item_local_name?: string;
+
   @IsNotEmpty()
   @IsNumber()
   price: number;

@@ -83,7 +83,7 @@ export class MenusService {
     const workbook = XLSX.read(file.buffer, { type: 'buffer' });
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
 
-    const expectedHeaders = ['item', 'price', 'description'];
+    const expectedHeaders = ['item', 'item_local_name', 'price', 'description'];
 
     const jsonData = XLSX.utils.sheet_to_json(worksheet, {
       defval: '',
@@ -131,6 +131,9 @@ export class MenusService {
       // Modify the row to use the Menu model
       row['price'] = price ? price : 0;
       row['item'] = item;
+      row['item_local_name'] = row['item_local_name']
+        ? row['item_local_name']
+        : null;
       row['description'] = row['description'] ? row['description'] : null;
     }
 
