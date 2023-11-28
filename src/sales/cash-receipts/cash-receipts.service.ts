@@ -326,13 +326,15 @@ export class CashReceiptsService {
   }
 
   private async generateUniqueCashReceiptNumber(): Promise<string> {
-    const latestCashReceipt = await this.cashReceiptRepository.findOne({
+    const latestCashReceipt = await this.cashReceiptRepository.find({
       order: { created_at: 'DESC' },
+      take: 1,
     });
 
-    const startingNumber = latestCashReceipt
-      ? parseInt(latestCashReceipt.cash_receipt_number.slice(3)) + 1
-      : 1;
+    const startingNumber =
+      latestCashReceipt.length > 0
+        ? parseInt(latestCashReceipt[0].cash_receipt_number.slice(3)) + 1
+        : 1;
 
     const sequentialNumber = startingNumber.toString().padStart(5, '0');
     const cashReceiptNumber = `CI-${sequentialNumber}`;
