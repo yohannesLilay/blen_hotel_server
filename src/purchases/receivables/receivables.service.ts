@@ -458,13 +458,15 @@ export class ReceivablesService {
   }
 
   private async generateUniqueReceivableNumber(): Promise<string> {
-    const latestReceivable = await this.receivableRepository.findOne({
+    const latestReceivable = await this.receivableRepository.find({
       order: { created_at: 'DESC' },
+      take: 1,
     });
 
-    const startingNumber = latestReceivable
-      ? parseInt(latestReceivable.receivable_number.slice(3)) + 1
-      : 1;
+    const startingNumber =
+      latestReceivable.length > 0
+        ? parseInt(latestReceivable[0].receivable_number.slice(3)) + 1
+        : 1;
 
     const sequentialNumber = startingNumber.toString().padStart(5, '0');
     const receivableNumber = `RN-${sequentialNumber}`;
