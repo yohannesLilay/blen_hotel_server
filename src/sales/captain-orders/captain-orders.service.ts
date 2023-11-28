@@ -494,14 +494,16 @@ export class CaptainOrdersService {
   private async generateUniqueCaptainOrderNumber(
     waiterStaffName: string,
   ): Promise<string> {
-    const latestCaptainOrder = await this.captainOrderRepository.findOne({
+    const latestCaptainOrder = await this.captainOrderRepository.find({
       order: { created_at: 'DESC' },
+      take: 1,
     });
 
     const prefix = waiterStaffName.slice(0, 3).toUpperCase().padEnd(3, 'X');
-    const startingNumber = latestCaptainOrder
-      ? parseInt(latestCaptainOrder.captain_order_number.slice(4)) + 1
-      : 1;
+    const startingNumber =
+      latestCaptainOrder.length > 0
+        ? parseInt(latestCaptainOrder[0].captain_order_number.slice(4)) + 1
+        : 1;
 
     const sequentialNumber = startingNumber.toString().padStart(5, '0');
     const captainOrderNumber = `${prefix}-${sequentialNumber}`;
