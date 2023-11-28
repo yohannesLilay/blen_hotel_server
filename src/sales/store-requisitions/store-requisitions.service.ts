@@ -480,14 +480,17 @@ export class StoreRequisitionsService {
   }
 
   private async generateUniqueStoreRequisitionNumber(): Promise<string> {
-    const latestStoreRequisition =
-      await this.storeRequisitionRepository.findOne({
-        order: { created_at: 'DESC' },
-      });
+    const latestStoreRequisition = await this.storeRequisitionRepository.find({
+      order: { created_at: 'DESC' },
+      take: 1,
+    });
 
-    const startingNumber = latestStoreRequisition
-      ? parseInt(latestStoreRequisition.store_requisition_number.slice(2)) + 1
-      : 1;
+    const startingNumber =
+      latestStoreRequisition.length > 0
+        ? parseInt(
+            latestStoreRequisition[0].store_requisition_number.slice(2),
+          ) + 1
+        : 1;
 
     const sequentialNumber = startingNumber.toString().padStart(5, '0');
     const storeRequisitionNumber = `SR${sequentialNumber}`;
