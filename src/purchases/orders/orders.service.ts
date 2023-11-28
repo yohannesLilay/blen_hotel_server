@@ -432,13 +432,17 @@ export class OrdersService {
   }
 
   private async generateUniqueOrderNumber(): Promise<string> {
-    const latestOrder = await this.orderRepository.findOne({
-      order: { created_at: 'DESC' },
+    const latestOrder = await this.orderRepository.find({
+      order: {
+        created_at: 'DESC',
+      },
+      take: 1,
     });
 
-    const startingNumber = latestOrder
-      ? parseInt(latestOrder.order_number.slice(3)) + 1
-      : 1;
+    const startingNumber =
+      latestOrder.length > 0
+        ? parseInt(latestOrder[0].order_number.slice(3)) + 1
+        : 1;
 
     const sequentialNumber = startingNumber.toString().padStart(5, '0');
     const orderNumber = `ON-${sequentialNumber}`;
