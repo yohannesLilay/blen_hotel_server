@@ -17,14 +17,12 @@ import { CaptainOrdersModule } from '../captain-orders/captain-orders.module';
 import { NotificationsModule } from 'src/notifications/notifications.module';
 import { StaffsModule } from 'src/configurations/staffs/staffs.module';
 import { RolesModule } from 'src/security/roles/roles.module';
+import { WebSocketsModule } from 'src/web-sockets/web-sockets.module';
 
 /** Custom Validators */
 import { ValidCaptainOrdersValidator } from './validators/valid-captain-orders.validator';
 import { ValidStaffValidator } from './validators/valid-staff.validator';
 import { ValidMenuValidator } from './validators/valid-menu.validator';
-
-/** Gateways */
-import { WebSocketsGateway } from 'src/web-sockets/web-sockets.gateway';
 
 @Module({
   imports: [
@@ -34,6 +32,7 @@ import { WebSocketsGateway } from 'src/web-sockets/web-sockets.gateway';
     NotificationsModule,
     StaffsModule,
     RolesModule,
+    WebSocketsModule,
   ],
   controllers: [CashReceiptsController],
   providers: [
@@ -41,7 +40,6 @@ import { WebSocketsGateway } from 'src/web-sockets/web-sockets.gateway';
     ValidCaptainOrdersValidator,
     ValidStaffValidator,
     ValidMenuValidator,
-    WebSocketsGateway,
   ],
   exports: [CashReceiptsService],
 })

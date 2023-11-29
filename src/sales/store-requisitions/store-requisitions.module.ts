@@ -15,12 +15,10 @@ import { StoreRequisitionItem } from './entities/store-requisition-item.entity';
 import { ProductsModule } from 'src/product-management/products/products.module';
 import { NotificationsModule } from 'src/notifications/notifications.module';
 import { WorkFlowsModule } from 'src/configurations/work-flows/work-flows.module';
+import { WebSocketsModule } from 'src/web-sockets/web-sockets.module';
 
 /** Custom Validators */
 import { ValidProductValidator } from './validators/valid-product.validator';
-
-/** Gateways */
-import { WebSocketsGateway } from 'src/web-sockets/web-sockets.gateway';
 
 @Module({
   imports: [
@@ -28,13 +26,10 @@ import { WebSocketsGateway } from 'src/web-sockets/web-sockets.gateway';
     ProductsModule,
     NotificationsModule,
     WorkFlowsModule,
+    WebSocketsModule,
   ],
   controllers: [StoreRequisitionsController],
-  providers: [
-    StoreRequisitionsService,
-    ValidProductValidator,
-    WebSocketsGateway,
-  ],
+  providers: [StoreRequisitionsService, ValidProductValidator],
   exports: [StoreRequisitionsService],
 })
 export class StoreRequisitionsModule {}

@@ -1,5 +1,5 @@
+import { Injectable } from '@nestjs/common';
 import {
-  OnGatewayConnection,
   OnGatewayDisconnect,
   SubscribeMessage,
   WebSocketGateway,
@@ -8,23 +8,21 @@ import {
 import { Server, Socket } from 'socket.io';
 
 @WebSocketGateway({ cors: '*' })
-export class WebSocketsGateway
-  implements OnGatewayConnection, OnGatewayDisconnect
-{
+@Injectable()
+export class WebSocketsGateway implements OnGatewayDisconnect {
   @WebSocketServer() server: Server;
-
-  handleConnection(client: any) {
-    const userId = client.handshake.query.userId;
-    console.log(`Client with user id of ${userId} connected`);
-  }
 
   @SubscribeMessage('joinRoom')
   handleJoinRoom(client: Socket, roomName: string) {
     client.join(roomName);
   }
 
-  handleDisconnect(client: any) {
-    const userId = client.handshake.query.userId;
-    console.log(`Client with user id of ${userId} disconnected`);
+  handleDisconnect(client: Socket) {
+    this.handleCleanUp(client);
+  }
+
+  private handleCleanUp(client: Socket) {
+    const rooms = Object.keys(client.rooms);
+    rooms.forEach((room) => client.leave(room));
   }
 }

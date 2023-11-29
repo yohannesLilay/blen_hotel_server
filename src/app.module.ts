@@ -16,12 +16,12 @@ import { SeedService } from './config/seed.service';
 
 /** Modules */
 import { SecurityModule } from './security/security.module';
+import { WebSocketsModule } from './web-sockets/web-sockets.module';
 import { ConfigurationsModule } from './configurations/configurations.module';
 import { PurchasesModule } from './purchases/purchases.module';
 import { ProductManagementModule } from './product-management/product-management.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { ReportsModule } from './reports/reports.module';
-import { WebSocketsGateway } from './web-sockets/web-sockets.gateway';
 import { SalesModule } from './sales/sales.module';
 import { ReservationsModule } from './reservations/reservations.module';
 
@@ -45,6 +45,7 @@ import { ReservationsModule } from './reservations/reservations.module';
           : false,
     }),
     SecurityModule,
+    WebSocketsModule,
     ConfigurationsModule,
     PurchasesModule,
     ProductManagementModule,
@@ -54,7 +55,7 @@ import { ReservationsModule } from './reservations/reservations.module';
     ReservationsModule,
   ],
   controllers: [],
-  providers: [StartupService, SeedService, WebSocketsGateway],
+  providers: [StartupService, SeedService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
