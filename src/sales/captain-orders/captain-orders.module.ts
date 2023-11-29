@@ -17,14 +17,12 @@ import { MenusModule } from 'src/configurations/menus/menus.module';
 import { StaffsModule } from 'src/configurations/staffs/staffs.module';
 import { FacilityTypesModule } from 'src/configurations/facility-types/facility-types.module';
 import { RolesModule } from 'src/security/roles/roles.module';
+import { WebSocketsModule } from 'src/web-sockets/web-sockets.module';
 
 /** Custom Validators */
 import { ValidMenuValidator } from './validators/valid-menu.validator';
 import { ValidFacilityTypeValidator } from './validators/valid-facility-type.validator';
 import { ValidStaffValidator } from './validators/valid-staff.validator';
-
-/** Gateways */
-import { WebSocketsGateway } from 'src/web-sockets/web-sockets.gateway';
 
 @Module({
   imports: [
@@ -34,6 +32,7 @@ import { WebSocketsGateway } from 'src/web-sockets/web-sockets.gateway';
     StaffsModule,
     FacilityTypesModule,
     RolesModule,
+    WebSocketsModule,
   ],
   controllers: [CaptainOrdersController],
   providers: [
@@ -41,7 +40,6 @@ import { WebSocketsGateway } from 'src/web-sockets/web-sockets.gateway';
     ValidMenuValidator,
     ValidFacilityTypeValidator,
     ValidStaffValidator,
-    WebSocketsGateway,
   ],
   exports: [CaptainOrdersService],
 })
