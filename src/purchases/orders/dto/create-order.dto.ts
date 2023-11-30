@@ -18,10 +18,6 @@ class OrderItemDto {
   @IsNotEmpty()
   quantity: number;
 
-  @IsNumber()
-  @IsNotEmpty()
-  unit_price: number;
-
   @IsString()
   @IsOptional()
   remark?: string;
