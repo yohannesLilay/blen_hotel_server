@@ -87,8 +87,6 @@ export class OrdersService {
       const orderItem = this.orderItemRepository.create({
         order: savedOrder,
         quantity: item.quantity,
-        unit_price: item.unit_price,
-        total_price: item.unit_price * item.quantity,
         remark: item.remark,
       });
       orderItem.product = await this.productsService.findOne(item.product_id);
@@ -112,9 +110,7 @@ export class OrdersService {
 
     const orderItem = this.orderItemRepository.create({
       order,
-      unit_price: createOrderItemDto.unit_price,
       quantity: createOrderItemDto.quantity,
-      total_price: createOrderItemDto.unit_price * createOrderItemDto.quantity,
       remark: createOrderItemDto.remark,
     });
     orderItem.product = await this.productsService.findOne(
@@ -226,10 +222,8 @@ export class OrdersService {
     const orderItem = await this.findOneItem(itemId);
     if (!orderItem) throw new NotFoundException('Order Item not found.');
 
-    orderItem.unit_price = updateOrderItemDto.unit_price;
     orderItem.quantity = updateOrderItemDto.quantity;
     orderItem.remark = updateOrderItemDto.remark;
-    orderItem.total_price = orderItem.unit_price * orderItem.quantity;
 
     await this.notifyOrderModification(order);
 

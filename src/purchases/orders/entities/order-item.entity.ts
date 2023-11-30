@@ -10,12 +10,6 @@ export class OrderItem {
   @Column()
   quantity: number;
 
-  @Column()
-  unit_price: number;
-
-  @Column()
-  total_price: number;
-
   @Column({ type: 'varchar', nullable: true })
   remark: string;
 
