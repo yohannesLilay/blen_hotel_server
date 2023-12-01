@@ -21,9 +21,9 @@ import { ConfigurationsModule } from './configurations/configurations.module';
 import { PurchasesModule } from './purchases/purchases.module';
 import { ProductManagementModule } from './product-management/product-management.module';
 import { NotificationsModule } from './notifications/notifications.module';
-import { ReportsModule } from './reports/reports.module';
 import { SalesModule } from './sales/sales.module';
 import { ReservationsModule } from './reservations/reservations.module';
+import { ReportsModule } from './reports/reports.module';
 
 @Module({
   imports: [
