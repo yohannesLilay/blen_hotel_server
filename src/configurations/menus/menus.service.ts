@@ -107,7 +107,7 @@ export class MenusService {
 
     for (const row of jsonData) {
       const item = row['item'].trim();
-      const price = row['stock_quantity'];
+      const price = row['price'];
 
       this.validateField(item, 'Menu item cannot be empty or null.');
 
