@@ -1,10 +1,19 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, ILike, In, QueryRunner, Raw, Repository } from 'typeorm';
+import {
+  DataSource,
+  ILike,
+  In,
+  IsNull,
+  QueryRunner,
+  Raw,
+  Repository,
+} from 'typeorm';
 
 /** DTOs */
 import { CreateCaptainOrderDto } from './dto/create-captain-order.dto';
@@ -70,6 +79,9 @@ export class CaptainOrdersService {
       return savedCaptainOrder;
     } catch (err) {
       await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException(
+        'An error occurred while creating the Captain Order.',
+      );
     } finally {
       await queryRunner.release();
     }
@@ -217,7 +229,11 @@ export class CaptainOrdersService {
   async findPrinted(waiterId?: number | null): Promise<CaptainOrder[]> {
     return await this.captainOrderRepository.find({
       relations: ['items', 'items.menu', 'waiter'],
-      where: { status: CaptainOrderStatus.PRINTED, waiter: { id: waiterId } },
+      where: {
+        status: CaptainOrderStatus.PRINTED,
+        waiter: { id: waiterId },
+        cash_receipt: IsNull(),
+      },
       order: { created_at: 'DESC' },
     });
   }
@@ -316,6 +332,15 @@ export class CaptainOrdersService {
     return await this.captainOrderItemRepository.save(captainOrderItem);
   }
 
+  async DisassociateCashReceipt(id: number): Promise<CaptainOrder> {
+    const captainOrder = await this.findOne(id);
+    if (!captainOrder) throw new NotFoundException('Captain Order not found.');
+
+    captainOrder.cash_receipt = null;
+
+    return await this.captainOrderRepository.save(captainOrder);
+  }
+
   async markAsPaid(captainOrderId: number): Promise<CaptainOrder> {
     const captainOrder = await this.findOne(captainOrderId);
     if (!captainOrder) {
@@ -353,6 +378,9 @@ export class CaptainOrdersService {
       await this.captainOrderRepository.remove(captainOrder);
     } catch (err) {
       await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException(
+        'An error occurred while deleting the Captain Order.',
+      );
     } finally {
       await queryRunner.release();
     }

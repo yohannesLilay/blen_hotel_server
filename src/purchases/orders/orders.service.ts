@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -63,6 +64,9 @@ export class OrdersService {
       return savedOrder;
     } catch (err) {
       await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException(
+        'An error occurred while creating purchase order.',
+      );
     } finally {
       await queryRunner.release();
     }
@@ -261,6 +265,9 @@ export class OrdersService {
       await this.orderRepository.remove(order);
     } catch (err) {
       await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException(
+        'An error occurred while deleting the purchase order.',
+      );
     } finally {
       await queryRunner.release();
     }

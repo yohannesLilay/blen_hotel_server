@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -73,6 +74,9 @@ export class ReceivablesService {
       return savedReceivable;
     } catch (err) {
       await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException(
+        'An error occurred while creating purchase receivable(GRV).',
+      );
     } finally {
       await queryRunner.release();
     }
@@ -291,6 +295,9 @@ export class ReceivablesService {
       await this.receivableRepository.remove(receivable);
     } catch (err) {
       await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException(
+        'An error occurred while deleting the purchase receivable(GRV).',
+      );
     } finally {
       await queryRunner.release();
     }
