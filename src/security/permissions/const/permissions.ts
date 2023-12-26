@@ -331,4 +331,24 @@ export const seedPermissions = [
     code_name: 'delete_book_room',
     name: 'Can delete book room',
   },
+  {
+    code_name: 'view_product_sales_report',
+    name: 'Can view product sales report',
+  },
+  {
+    code_name: 'view_reorder_status_report',
+    name: 'Can view reorder status report',
+  },
+  {
+    code_name: 'view_periodic_sales_report',
+    name: 'Can view periodic sales report',
+  },
+  {
+    code_name: 'view_sales_by_staff_report',
+    name: 'Can view sales by staff report',
+  },
+  {
+    code_name: 'view_room_revenue_report',
+    name: 'Can view room revenue report',
+  },
 ];
