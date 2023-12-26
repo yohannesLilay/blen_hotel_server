@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -66,6 +67,9 @@ export class CashReceiptsService {
       return savedCashReceipt;
     } catch (err) {
       await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException(
+        'An error occurred while creating the Cash Receipt.',
+      );
     } finally {
       await queryRunner.release();
     }
@@ -246,10 +250,16 @@ export class CashReceiptsService {
 
     try {
       // this.notifyCashReceiptRemoval(cashReceipt);
+      cashReceipt.captain_orders.forEach(async (element) => {
+        await this.captainOrdersService.DisassociateCashReceipt(element.id);
+      });
       await this.cashReceiptItemRepository.remove(cashReceipt.items);
       await this.cashReceiptRepository.remove(cashReceipt);
     } catch (err) {
       await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException(
+        'An error occurred while deleting the Cash Receipt.',
+      );
     } finally {
       await queryRunner.release();
     }
