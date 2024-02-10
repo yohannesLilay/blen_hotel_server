@@ -144,6 +144,10 @@ export const seedPermissions = [
     name: 'Can approve purchase order',
   },
   {
+    code_name: 'reject_purchase_order',
+    name: 'Can reject purchase order',
+  },
+  {
     code_name: 'add_purchase_receivable',
     name: 'Can add purchase receivable',
   },
@@ -162,6 +166,10 @@ export const seedPermissions = [
   {
     code_name: 'approve_purchase_receivable',
     name: 'Can approve purchase receivable',
+  },
+  {
+    code_name: 'reject_purchase_receivable',
+    name: 'Can reject purchase receivable',
   },
   {
     code_name: 'add_work_flow',

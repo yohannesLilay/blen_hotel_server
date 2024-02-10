@@ -80,4 +80,8 @@ export class RoomsService {
 
     await this.roomRepository.remove(room);
   }
+
+  async roomsCount() {
+    return await this.roomRepository.count();
+  }
 }

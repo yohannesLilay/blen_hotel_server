@@ -351,4 +351,174 @@ export class CashReceiptsService {
 
     return cashReceiptNumber;
   }
+
+  async salesByStaffReport(startDate: Date, endDate: Date, staffId: number) {
+    const endDateFormatted = new Date(endDate);
+    endDateFormatted.setHours(23, 59, 59);
+    const endDateFormattedString = endDateFormatted.toISOString();
+
+    const dateArray = [];
+    const currentDate = new Date(startDate);
+    while (currentDate <= endDateFormatted) {
+      dateArray.push(new Date(currentDate));
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    const result = await this.cashReceiptRepository
+      .createQueryBuilder('cashReceipt')
+      .select('DATE(cashReceipt.cash_receipt_date)', 'date')
+      .addSelect('COALESCE(SUM(cashReceiptItem.total_price), 0)', 'totalPrice')
+      .leftJoin('cashReceipt.items', 'cashReceiptItem')
+      .leftJoin('cashReceipt.waiter', 'waiter')
+      .where(
+        'cashReceipt.cash_receipt_date >= :startDate AND cashReceipt.cash_receipt_date <= :endDate',
+        {
+          startDate,
+          endDate: endDateFormattedString,
+        },
+      )
+      .andWhere('waiter.id = :staffId', { staffId })
+      .groupBy('DATE(cashReceipt.cash_receipt_date)')
+      .getRawMany();
+
+    const totalSales = result.reduce(
+      (total, item) => total + parseFloat(item.totalPrice),
+      0,
+    );
+    const reportResult = [];
+
+    dateArray.forEach((date) => {
+      const resultForDate = result.find(
+        (item) => new Date(item.date).toDateString() === date.toDateString(),
+      );
+      if (resultForDate) {
+        reportResult.push(resultForDate);
+      } else {
+        reportResult.push({
+          date: date.toISOString(),
+          totalPrice: 0,
+        });
+      }
+    });
+
+    return {
+      detail: reportResult,
+      total: totalSales,
+      staff: await this.staffsService.findOne(staffId),
+      timePeriod: {
+        startDate,
+        endDate,
+      },
+    };
+  }
+
+  async productSalesReport(startDate: Date, endDate: Date, menuId: number) {
+    const endDateFormatted = new Date(endDate);
+    endDateFormatted.setHours(23, 59, 59);
+    const endDateFormattedString = endDateFormatted.toISOString();
+
+    const dateArray = [];
+    const currentDate = new Date(startDate);
+    while (currentDate <= endDateFormatted) {
+      dateArray.push(new Date(currentDate));
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    const result = await this.cashReceiptRepository
+      .createQueryBuilder('cashReceipt')
+      .select('DATE(cashReceipt.cash_receipt_date)', 'date')
+      .addSelect('COALESCE(SUM(cashReceiptItem.total_price), 0)', 'totalPrice')
+      .leftJoin('cashReceipt.items', 'cashReceiptItem')
+      .leftJoin('cashReceiptItem.menu', 'menu')
+      .where(
+        'cashReceipt.cash_receipt_date >= :startDate AND cashReceipt.cash_receipt_date <= :endDate',
+        {
+          startDate,
+          endDate: endDateFormattedString,
+        },
+      )
+      .andWhere('menu.id = :menuId', { menuId })
+      .groupBy('DATE(cashReceipt.cash_receipt_date)')
+      .getRawMany();
+
+    const totalSales = result.reduce(
+      (total, item) => total + parseFloat(item.totalPrice),
+      0,
+    );
+    const reportResult = [];
+
+    dateArray.forEach((date) => {
+      const resultForDate = result.find(
+        (item) => new Date(item.date).toDateString() === date.toDateString(),
+      );
+      if (resultForDate) {
+        reportResult.push(resultForDate);
+      } else {
+        reportResult.push({
+          date: date.toISOString(),
+          totalPrice: 0,
+        });
+      }
+    });
+
+    return {
+      detail: reportResult,
+      total: totalSales,
+      product: await this.menusService.findOne(menuId),
+      timePeriod: {
+        startDate,
+        endDate,
+      },
+    };
+  }
+
+  async topUsedMenusReport() {
+    const result = await this.cashReceiptRepository
+      .createQueryBuilder('cashReceipt')
+      .select('menu.id', 'menuId')
+      .addSelect('menu.item', 'menuName')
+      .addSelect(
+        'COALESCE(SUM(cashReceiptItem.quantity)::numeric, 0)',
+        'usageCount',
+      )
+      .addSelect(
+        'COALESCE(SUM(cashReceiptItem.total_price)::numeric, 0)',
+        'totalPrice',
+      )
+      .leftJoin('cashReceipt.items', 'cashReceiptItem')
+      .leftJoin('cashReceiptItem.menu', 'menu')
+      .groupBy('menu.id')
+      .addGroupBy('menu.item')
+      .having('menu.id IS NOT NULL')
+      .orderBy('3', 'DESC')
+      .limit(5)
+      .getRawMany();
+
+    return result;
+  }
+
+  async topIncomeMenusReport() {
+    const result = await this.cashReceiptRepository
+      .createQueryBuilder('cashReceipt')
+      .select('menu.id', 'menuId')
+      .addSelect('menu.item', 'menuName')
+      .addSelect(
+        'COALESCE(SUM(cashReceiptItem.quantity)::numeric, 0)',
+        'usageCount',
+      )
+      .addSelect(
+        'COALESCE(SUM(cashReceiptItem.total_price)::numeric, 0)',
+        'totalPrice',
+      )
+      .leftJoin('cashReceipt.items', 'cashReceiptItem')
+      .leftJoin('cashReceiptItem.menu', 'menu')
+      .groupBy('menu.id')
+      .addGroupBy('menu.item')
+      .having('menu.id IS NOT NULL')
+      .orderBy('4', 'DESC')
+      .limit(5)
+      .getRawMany();
+
+    return result;
+  }
 }

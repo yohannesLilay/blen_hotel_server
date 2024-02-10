@@ -121,4 +121,70 @@ export class BookRoomsService {
 
     await this.bookRoomRepository.remove(bookRoom);
   }
+
+  async roomRevenueReport(startDate: Date, endDate: Date) {
+    const endDateFormatted = new Date(endDate);
+    endDateFormatted.setHours(23, 59, 59);
+    const endDateFormattedString = endDateFormatted.toISOString();
+
+    const dateArray = [];
+    const currentDate = new Date(startDate);
+    while (currentDate <= endDateFormatted) {
+      dateArray.push(new Date(currentDate));
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    const totalRooms = await this.roomsService.roomsCount();
+
+    const result = await this.bookRoomRepository
+      .createQueryBuilder('bookRoom')
+      .select('DATE(bookRoom.book_date)', 'date')
+      .addSelect('COALESCE(SUM(room.price), 0)', 'revenue')
+      .addSelect('COALESCE(COUNT(DISTINCT bookRoom.room), 0)', 'roomsOccupied')
+      .addSelect(
+        'COALESCE((SELECT COUNT(id) FROM room), 0) - COALESCE(COUNT(DISTINCT bookRoom.room), 0)',
+        'roomsFree',
+      )
+      .leftJoin('bookRoom.room', 'room')
+      .where(
+        'bookRoom.book_date >= :startDate AND bookRoom.book_date <= :endDate',
+        {
+          startDate,
+          endDate: endDateFormattedString,
+        },
+      )
+      .groupBy('DATE(bookRoom.book_date)')
+      .getRawMany();
+
+    const totalRevenue = result.reduce(
+      (total, item) => total + parseFloat(item.revenue),
+      0,
+    );
+    const reportResult = [];
+
+    dateArray.forEach((date) => {
+      const resultForDate = result.find(
+        (item) => new Date(item.date).toDateString() === date.toDateString(),
+      );
+      if (resultForDate) {
+        reportResult.push(resultForDate);
+      } else {
+        reportResult.push({
+          date: date.toISOString(),
+          revenue: 0,
+          roomsOccupied: 0,
+          roomsFree: totalRooms,
+        });
+      }
+    });
+
+    return {
+      detail: reportResult,
+      total: totalRevenue,
+      timePeriod: {
+        startDate,
+        endDate,
+      },
+    };
+  }
 }
