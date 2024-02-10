@@ -36,8 +36,14 @@ export class Order {
   @ManyToOne(() => User, { nullable: true })
   approved_by: User;
 
+  @ManyToOne(() => User, { nullable: true })
+  rejected_by: User;
+
   @Column({ type: 'enum', enum: OrderStatus, default: OrderStatus.REQUESTED })
   status: OrderStatus;
+
+  @Column({ type: 'text', nullable: true })
+  rejection_reason: string;
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;

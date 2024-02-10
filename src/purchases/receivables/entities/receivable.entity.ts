@@ -41,6 +41,9 @@ export class Receivable {
   @ManyToOne(() => User, { nullable: true })
   received_by: User;
 
+  @ManyToOne(() => User, { nullable: true })
+  rejected_by: User;
+
   @ManyToOne(() => Supplier, { nullable: true })
   supplier: Supplier;
 
@@ -50,6 +53,9 @@ export class Receivable {
     default: ReceivableStatus.REQUESTED,
   })
   status: ReceivableStatus;
+
+  @Column({ type: 'text', nullable: true })
+  rejection_reason: string;
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;

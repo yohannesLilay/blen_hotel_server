@@ -12,6 +12,7 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { CreateOrderItemDto } from './dto/create-order-item.dto';
 import { UpdateOrderItemDto } from './dto/update-order-item.dto';
+import { RejectOrderDto } from './dto/reject-order.dto';
 
 /** Entities */
 import { Order } from './entities/order.entity';
@@ -145,6 +146,7 @@ export class OrdersService {
         'requested_by',
         'checked_by',
         'approved_by',
+        'rejected_by',
       ],
       where: search ? [{ order_number: ILike(`%${search}%`) }] : {},
       order: { created_at: 'DESC' },
@@ -172,6 +174,7 @@ export class OrdersService {
         'requested_by',
         'checked_by',
         'approved_by',
+        'rejected_by',
       ],
     });
   }
@@ -206,6 +209,7 @@ export class OrdersService {
     this.checkOrderForUpdate(order, userId);
 
     order.order_date = updateOrderDto.order_date;
+    order.status = OrderStatus.REQUESTED;
 
     await this.notifyOrderModification(order);
 
@@ -223,6 +227,8 @@ export class OrdersService {
 
     this.checkOrderForUpdate(order, userId);
 
+    order.status = OrderStatus.REQUESTED;
+
     const orderItem = await this.findOneItem(itemId);
     if (!orderItem) throw new NotFoundException('Order Item not found.');
 
@@ -231,6 +237,7 @@ export class OrdersService {
 
     await this.notifyOrderModification(order);
 
+    await this.orderRepository.save(order);
     return await this.orderItemRepository.save(orderItem);
   }
 
@@ -244,6 +251,25 @@ export class OrdersService {
     order.status = isApproval ? OrderStatus.APPROVED : OrderStatus.CHECKED;
 
     await this.notifyOrderAction(order, actor, isApproval);
+
+    return await this.orderRepository.save(order);
+  }
+
+  async rejectOrder(
+    id: number,
+    rejectOrderDto: RejectOrderDto,
+    userId: number,
+  ): Promise<Order> {
+    const order = await this.findOne(id);
+    if (!order) throw new NotFoundException('Order not found.');
+
+    this.checkOrderForRejection(order);
+
+    order.rejection_reason = rejectOrderDto.rejection_reason;
+    order.rejected_by = await this.usersService.findOne(userId);
+    order.status = OrderStatus.REJECTED;
+
+    await this.notifyOrderRejection(order);
 
     return await this.orderRepository.save(order);
   }
@@ -283,16 +309,22 @@ export class OrdersService {
 
     this.checkOrderForDelete(order, userId);
 
+    order.status = OrderStatus.REQUESTED;
+
     const orderItem = await this.findOneItem(itemId);
     if (!orderItem) throw new NotFoundException('Order Item not found.');
 
     this.notifyOrderModification(order);
 
     await this.orderItemRepository.remove(orderItem);
+    await this.orderRepository.remove(order);
   }
 
   private checkOrderForUpdate(order: Order, userId: number) {
-    if (order.status != OrderStatus.REQUESTED) {
+    if (
+      order.status != OrderStatus.REQUESTED &&
+      order.status != OrderStatus.REJECTED
+    ) {
       throw new BadRequestException('Order status does not allow updates.');
     }
 
@@ -303,8 +335,20 @@ export class OrdersService {
     }
   }
 
+  private checkOrderForRejection(order: Order) {
+    if (
+      order.status == OrderStatus.REJECTED ||
+      order.status == OrderStatus.APPROVED
+    ) {
+      throw new BadRequestException('Order status does not allow rejection.');
+    }
+  }
+
   private checkOrderForDelete(order: Order, userId: number) {
-    if (order.status != OrderStatus.REQUESTED) {
+    if (
+      order.status != OrderStatus.REQUESTED &&
+      order.status != OrderStatus.REJECTED
+    ) {
       throw new BadRequestException('This orders item can not be deleted.');
     }
 
@@ -328,6 +372,14 @@ export class OrdersService {
     await Promise.all([
       this.notifyUsers(notificationMessage, FlowStep.REQUEST),
       this.notifyAdminUser(notificationMessage),
+    ]);
+  }
+
+  private async notifyOrderRejection(order: Order) {
+    const notificationMessage = `Requested Purchase order with order number (${order.order_number}) has been rejected by ${order.rejected_by.name} with a reason ${order.rejection_reason}.`;
+    await Promise.all([
+      this.notifyAdminUser(notificationMessage),
+      this.notifyRequester(notificationMessage, order.requested_by.id),
     ]);
   }
 

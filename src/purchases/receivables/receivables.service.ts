@@ -12,6 +12,7 @@ import { CreateReceivableDto } from './dto/create-receivable.dto';
 import { UpdateReceivableDto } from './dto/update-receivable.dto';
 import { CreateReceivableItemDto } from './dto/create-receivable-item.dto';
 import { UpdateReceivableItemDto } from './dto/update-receivable-item.dto';
+import { RejectReceivableDto } from './dto/reject-receivable.dto';
 
 /** Entities */
 import { Receivable } from './entities/receivable.entity';
@@ -165,6 +166,7 @@ export class ReceivablesService {
         'items.product',
         'prepared_by',
         'received_by',
+        'rejected_by',
         'supplier',
         'order',
       ],
@@ -199,6 +201,7 @@ export class ReceivablesService {
         'items.product',
         'prepared_by',
         'received_by',
+        'rejected_by',
         'supplier',
         'order',
       ],
@@ -232,6 +235,7 @@ export class ReceivablesService {
       updateReceivableDto.supplier_id !== null
         ? await this.suppliersService.findOne(updateReceivableDto?.supplier_id)
         : null;
+    receivable.status = ReceivableStatus.REQUESTED;
 
     this.notifyReceivableModification(receivable);
 
@@ -253,6 +257,8 @@ export class ReceivablesService {
     if (!receivableItem)
       throw new NotFoundException('Receivable Item not found.');
 
+    receivable.status = ReceivableStatus.REQUESTED;
+
     receivableItem.unit_price = updateReceivableItemDto.unit_price;
     receivableItem.quantity = updateReceivableItemDto.quantity;
     receivableItem.remark = updateReceivableItemDto.remark;
@@ -261,6 +267,7 @@ export class ReceivablesService {
 
     this.notifyReceivableModification(receivable);
 
+    await this.receivableRepository.save(receivable);
     return await this.receivableItemRepository.save(receivableItem);
   }
 
@@ -274,6 +281,25 @@ export class ReceivablesService {
     await this.updateProductsStockQuantity(receivable.items);
 
     await this.notifyReceivableAction(receivable);
+
+    return await this.receivableRepository.save(receivable);
+  }
+
+  async rejectReceivable(
+    id: number,
+    rejectReceivableDto: RejectReceivableDto,
+    userId: number,
+  ): Promise<Receivable> {
+    const receivable = await this.findOne(id);
+    if (!receivable) throw new NotFoundException('Receivable not found.');
+
+    this.checkReceivableForRejection(receivable);
+
+    receivable.rejection_reason = rejectReceivableDto.rejection_reason;
+    receivable.rejected_by = await this.usersService.findOne(userId);
+    receivable.status = ReceivableStatus.REJECTED;
+
+    await this.notifyReceivableRejection(receivable);
 
     return await this.receivableRepository.save(receivable);
   }
@@ -313,17 +339,24 @@ export class ReceivablesService {
 
     this.checkReceivableForDelete(receivable, userId);
 
+    receivable.status = ReceivableStatus.REQUESTED;
+
     const receivableItem = await this.findOneItem(itemId);
     if (!receivableItem)
       throw new NotFoundException('Receivable Item not found.');
 
     this.notifyReceivableModification(receivable);
 
+    await this.receivableRepository.save(receivable);
+
     await this.receivableItemRepository.remove(receivableItem);
   }
 
   private checkReceivableForUpdate(receivable: Receivable, userId: number) {
-    if (receivable.status != ReceivableStatus.REQUESTED) {
+    if (
+      receivable.status != ReceivableStatus.REQUESTED &&
+      receivable.status != ReceivableStatus.REJECTED
+    ) {
       throw new BadRequestException(
         'Receivable status does not allow updates.',
       );
@@ -337,7 +370,10 @@ export class ReceivablesService {
   }
 
   private checkReceivableForDelete(receivable: Receivable, userId: number) {
-    if (receivable.status != ReceivableStatus.REQUESTED) {
+    if (
+      receivable.status != ReceivableStatus.REQUESTED &&
+      receivable.status != ReceivableStatus.REJECTED
+    ) {
       throw new BadRequestException(
         'This receivables item can not be deleted.',
       );
@@ -346,6 +382,17 @@ export class ReceivablesService {
     if (receivable.prepared_by?.id != userId) {
       throw new BadRequestException(
         'Not allowed to delete this purchase receivable.',
+      );
+    }
+  }
+
+  private checkReceivableForRejection(receivable: Receivable) {
+    if (
+      receivable.status == ReceivableStatus.REJECTED ||
+      receivable.status == ReceivableStatus.RECEIVED
+    ) {
+      throw new BadRequestException(
+        'Receivable status does not allow rejection.',
       );
     }
   }
@@ -373,6 +420,14 @@ export class ReceivablesService {
     await Promise.all([
       this.notifyUsers(notificationMessage, FlowStep.REQUEST),
       this.notifyAdminUser(notificationMessage),
+    ]);
+  }
+
+  private async notifyReceivableRejection(receivable: Receivable) {
+    const notificationMessage = `Requested Purchase receivable with receivable number (${receivable.receivable_number}) has been rejected by ${receivable.rejected_by.name} with a reason ${receivable.rejection_reason}.`;
+    await Promise.all([
+      this.notifyAdminUser(notificationMessage),
+      this.notifyRequester(notificationMessage, receivable.prepared_by.id),
     ]);
   }
 

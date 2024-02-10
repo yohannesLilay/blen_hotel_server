@@ -17,6 +17,7 @@ import { CreateReceivableDto } from './dto/create-receivable.dto';
 import { UpdateReceivableDto } from './dto/update-receivable.dto';
 import { UpdateReceivableItemDto } from './dto/update-receivable-item.dto';
 import { CreateReceivableItemDto } from './dto/create-receivable-item.dto';
+import { RejectReceivableDto } from './dto/reject-receivable.dto';
 
 /** Guards and Decorators */
 import { AccessTokenGuard } from 'src/security/auth/guards/access-token.guard';
@@ -116,6 +117,20 @@ export class ReceivablesController {
     @User('id') userId: number,
   ) {
     return await this.receivablesService.approve(+id, +userId);
+  }
+
+  @Patch(':id/reject')
+  @Permissions('reject_purchase_receivable')
+  async reject(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() rejectReceivableDto: RejectReceivableDto,
+    @User('id') userId: number,
+  ) {
+    return await this.receivablesService.rejectReceivable(
+      +id,
+      rejectReceivableDto,
+      userId,
+    );
   }
 
   @Delete(':id')

@@ -17,6 +17,7 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { UpdateOrderItemDto } from './dto/update-order-item.dto';
 import { CreateOrderItemDto } from './dto/create-order-item.dto';
+import { RejectOrderDto } from './dto/reject-order.dto';
 
 /** Guards and Decorators */
 import { AccessTokenGuard } from 'src/security/auth/guards/access-token.guard';
@@ -114,6 +115,16 @@ export class OrdersController {
     @User('id') userId: number,
   ) {
     return await this.ordersService.checkOrApprove(+id, +userId, true);
+  }
+
+  @Patch(':id/reject')
+  @Permissions('reject_purchase_order')
+  async reject(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() rejectOrderDto: RejectOrderDto,
+    @User('id') userId: number,
+  ) {
+    return await this.ordersService.rejectOrder(+id, rejectOrderDto, userId);
   }
 
   @Delete(':id')
