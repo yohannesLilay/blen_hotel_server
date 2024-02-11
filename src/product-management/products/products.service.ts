@@ -147,7 +147,7 @@ export class ProductsService {
       'category',
       'stock_quantity',
       'safety_stock_level',
-      'note',
+      'notes',
     ];
 
     const jsonData = XLSX.utils.sheet_to_json(worksheet, {
@@ -176,6 +176,7 @@ export class ProductsService {
       const category = row['category'].trim();
       const stockQuantity = row['stock_quantity'];
       const safetyStockLevel = row['safety_stock_level'];
+      const notes = row['notes'];
 
       this.validateField(name, 'Product name cannot be empty or null.');
       this.validateField(
@@ -233,12 +234,13 @@ export class ProductsService {
         }
       }
 
-      // Modify the row to use the Category model
+      // Modify the row to use the Product model
       row['category'] = await this.categoriesService.findByName(category);
       row['stock_quantity'] = stockQuantity ? stockQuantity : 0;
       row['safety_stock_level'] = safetyStockLevel ? safetyStockLevel : null;
       row['name'] = name;
       row['unit_of_measure'] = unitOfMeasure;
+      row['notes'] = notes;
     }
 
     return await this.productRepository.save(jsonData);
