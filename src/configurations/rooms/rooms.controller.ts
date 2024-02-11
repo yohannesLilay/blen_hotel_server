@@ -9,6 +9,12 @@ import {
   UseGuards,
   BadRequestException,
   ParseIntPipe,
+  Query,
+  UseInterceptors,
+  UploadedFile,
+  ParseFilePipe,
+  MaxFileSizeValidator,
+  FileTypeValidator,
 } from '@nestjs/common';
 import { RoomsService } from './rooms.service';
 import { CreateRoomDto } from './dto/create-room.dto';
@@ -18,6 +24,7 @@ import { UpdateRoomDto } from './dto/update-room.dto';
 import { AccessTokenGuard } from 'src/security/auth/guards/access-token.guard';
 import { PermissionsGuard } from 'src/security/auth/guards/permissions.guard';
 import { Permissions } from 'src/security/auth/decorators/permissions.decorator';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @UseGuards(AccessTokenGuard, PermissionsGuard)
 @Controller('rooms')
@@ -38,8 +45,12 @@ export class RoomsController {
 
   @Get()
   @Permissions('view_room')
-  async findAll() {
-    return await this.roomsService.findAll();
+  async findAll(
+    @Query('page', ParseIntPipe) page = 1,
+    @Query('limit', ParseIntPipe) limit = 10,
+    @Query('search') search: string | undefined,
+  ) {
+    return await this.roomsService.findAll(Math.max(page, 1), limit, search);
   }
 
   @Get(':id')
@@ -76,5 +87,25 @@ export class RoomsController {
   @Permissions('delete_room')
   async remove(@Param('id', ParseIntPipe) id: number) {
     return await this.roomsService.remove(+id);
+  }
+
+  @Post('import')
+  @Permissions('import_room')
+  @UseInterceptors(FileInterceptor('file'))
+  async importExcel(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 4 * 1024 * 1024 }),
+          new FileTypeValidator({
+            fileType:
+              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
+    return await this.roomsService.importExcel(file);
   }
 }

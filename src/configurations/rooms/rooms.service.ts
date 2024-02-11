@@ -1,6 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
+import * as XLSX from 'xlsx';
 
 /** DTOs */
 import { CreateRoomDto } from './dto/create-room.dto';
@@ -22,8 +28,29 @@ export class RoomsService {
     return await this.roomRepository.save(room);
   }
 
-  async findAll(): Promise<Room[]> {
-    return await this.roomRepository.find();
+  async findAll(
+    page: number,
+    limit: number,
+    search?: string,
+  ): Promise<{
+    rooms: Room[];
+    total: number;
+    currentPage: number;
+    totalPages: number;
+  }> {
+    const skip = (page - 1) * limit;
+
+    const [rooms, total] = await this.roomRepository.findAndCount({
+      where: search ? [{ name: ILike(`%${search}%`) }] : {},
+      order: { created_at: 'DESC' },
+      skip,
+      take: limit,
+    });
+
+    const currentPage = page;
+    const totalPages = Math.ceil(total / limit);
+
+    return { rooms, total, currentPage, totalPages };
   }
 
   async findAllActive(): Promise<Room[]> {
@@ -81,7 +108,80 @@ export class RoomsService {
     await this.roomRepository.remove(room);
   }
 
+  async importExcel(file: Express.Multer.File): Promise<Room[]> {
+    const workbook = XLSX.read(file.buffer, { type: 'buffer' });
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+
+    const expectedHeaders = ['name', 'price', 'type', 'notes'];
+
+    const jsonData = XLSX.utils.sheet_to_json(worksheet, {
+      defval: '',
+    });
+
+    if (!jsonData.length) {
+      throw new HttpException(
+        'No data found in the worksheet',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+
+    if (
+      !expectedHeaders.every((header) => jsonData[0].hasOwnProperty(header))
+    ) {
+      throw new HttpException(
+        'Expected headers are missing in the Excel file',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+
+    for (const row of jsonData) {
+      const name = row['name'].trim();
+      const price = row['price'];
+
+      this.validateField(name, 'Room name can not be empty or null.');
+
+      if (await this.doesRoomExist(name)) {
+        throw new HttpException(
+          `Room with name '${name}' already exists.`,
+          HttpStatus.CONFLICT,
+        );
+      }
+
+      if (price !== null && price !== undefined && price !== '') {
+        const priceNumber = parseFloat(price);
+        if (isNaN(priceNumber)) {
+          throw new HttpException(
+            'Room price must be a valid number.',
+            HttpStatus.UNPROCESSABLE_ENTITY,
+          );
+        }
+      }
+
+      // Modify the row to use the Room model
+      row['price'] = price ? price : 0;
+      row['name'] = name;
+      row['type'] = row['type'] ? row['type'] : null;
+      row['notes'] = row['notes'] ? row['notes'] : null;
+    }
+
+    return await this.roomRepository.save(jsonData);
+  }
+
   async roomsCount() {
     return await this.roomRepository.count();
+  }
+
+  async doesRoomExist(name): Promise<boolean> {
+    const room = await this.roomRepository.findOne({
+      where: { name },
+    });
+
+    return !!room;
+  }
+
+  validateField(value, message) {
+    if (!value) {
+      throw new HttpException(message, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
   }
 }
