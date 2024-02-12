@@ -38,6 +38,7 @@ export class ProductsService {
       safety_stock_level: createProductDto.safety_stock_level,
       notes: createProductDto.notes,
       stock_quantity: 0,
+      is_directly_consumed: createProductDto.is_directly_consumed,
     });
     product.category = await this.categoriesService.findOne(
       createProductDto.categoryId,
@@ -108,6 +109,7 @@ export class ProductsService {
     product.unit_of_measure = updateProductDto.unit_of_measure;
     product.safety_stock_level = updateProductDto.safety_stock_level;
     product.notes = updateProductDto.notes;
+    product.is_directly_consumed = updateProductDto.is_directly_consumed;
     product.category = await this.categoriesService.findOne(
       updateProductDto.categoryId,
     );
@@ -147,6 +149,7 @@ export class ProductsService {
       'category',
       'stock_quantity',
       'safety_stock_level',
+      'directly_consumed',
       'notes',
     ];
 
@@ -176,7 +179,7 @@ export class ProductsService {
       const category = row['category'].trim();
       const stockQuantity = row['stock_quantity'];
       const safetyStockLevel = row['safety_stock_level'];
-      const notes = row['notes'];
+      const directlyConsumed = row['directly_consumed'];
 
       this.validateField(name, 'Product name cannot be empty or null.');
       this.validateField(
@@ -234,13 +237,23 @@ export class ProductsService {
         }
       }
 
+      this.validateField(
+        directlyConsumed,
+        'Directly consumed value must be provided.',
+      );
+
+      if (typeof directlyConsumed !== 'boolean') {
+        throw new HttpException(
+          'Directly consumed value must be a true or false.',
+          HttpStatus.UNPROCESSABLE_ENTITY,
+        );
+      }
+
       // Modify the row to use the Product model
       row['category'] = await this.categoriesService.findByName(category);
       row['stock_quantity'] = stockQuantity ? stockQuantity : 0;
       row['safety_stock_level'] = safetyStockLevel ? safetyStockLevel : null;
-      row['name'] = name;
-      row['unit_of_measure'] = unitOfMeasure;
-      row['notes'] = notes;
+      row['is_directly_consumed'] = directlyConsumed ? directlyConsumed : false;
     }
 
     return await this.productRepository.save(jsonData);
@@ -265,7 +278,7 @@ export class ProductsService {
   }
 
   validateField(value, message) {
-    if (!value) {
+    if (value === null || value === undefined || value === '') {
       throw new HttpException(message, HttpStatus.UNPROCESSABLE_ENTITY);
     }
   }

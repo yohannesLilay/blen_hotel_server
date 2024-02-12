@@ -145,11 +145,11 @@ export class MenusService {
   }
 
   async doesMenuItemExist(item): Promise<boolean> {
-    const product = await this.menuRepository.findOne({
+    const menu = await this.menuRepository.findOne({
       where: { item },
     });
 
-    return !!product;
+    return !!menu;
   }
 
   validateField(value, message) {

@@ -1,4 +1,5 @@
 import {
+  IsBoolean,
   IsEnum,
   IsNotEmpty,
   IsNumber,
@@ -40,4 +41,8 @@ export class CreateProductDto {
   @IsString()
   @MaxLength(200, { message: 'Notes must have at most 200 characters.' })
   notes?: string;
+
+  @IsNotEmpty()
+  @IsBoolean()
+  is_directly_consumed: boolean;
 }

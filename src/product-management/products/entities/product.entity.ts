@@ -32,6 +32,9 @@ export class Product {
   @Column({ type: 'int', nullable: false })
   stock_quantity: number;
 
+  @Column({ type: 'boolean', default: false })
+  is_directly_consumed: boolean;
+
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
 
